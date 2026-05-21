@@ -3,7 +3,6 @@
 
 /// Renders arbitrary content rotated 90 degrees clockwise.
 /// The bounding box automatically reflows to reserve the correct vertical space.
-/// Unlike 'roman', it does not override the font or text size, making it
 /// ideal for equations, figures, or complex nested content.
 ///
 /// - token (dictionary): A token with type "turn" and text field (content).
@@ -15,9 +14,7 @@
   // in the vertical column, but let the height auto-calculate based on the rotated content.
   box(
     width: config.sizing.char-box,
-    align(center + horizon,
-      rotate(90deg, reflow: true, token.text)
-    )
+    align(center + horizon, rotate(90deg, reflow: true, token.text)),
   )
 }
 
@@ -25,6 +22,6 @@
 /// Bundles the renderer for "turn" tokens.
 #let default-turn = (
   node-renderers: (
-    "turn": render-turn
-  )
+    "turn": render-turn,
+  ),
 )
