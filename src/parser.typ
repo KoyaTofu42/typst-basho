@@ -6,7 +6,7 @@
 //   (type: "newline", text: "\n")
 //   (type: "tcy", text: <Latin/number run>)
 
-/// Tests whether a character cluster is an ASCII Latin letter or digit.
+/// Tests whether a character cluster is an ASCII Latin letter, digit, or comma.
 ///
 /// - ch (str): A single character cluster.
 /// - config (dictionary): The layout configuration.
@@ -17,7 +17,7 @@
 
 /// Splits an input string into an array of tokens.
 /// - Newline characters → type "newline"
-/// - Consecutive ASCII Latin/digit runs → type "tcy"
+/// - Consecutive ASCII Latin/digit/comma runs → type "tcy"
 /// - Everything else → type "char" (one per cluster)
 ///
 /// - input (str): The string to tokenize.

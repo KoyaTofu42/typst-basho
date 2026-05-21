@@ -10,21 +10,26 @@
 /// Default TCY (tate-chu-yoko) processing module.
 /// Bundles the detection pattern, sizing, and filter logic together.
 #let default-tcy = (
-  pattern: regex("^[A-Za-z0-9]+$"),
-  sizes: (1em, 0.65em, 0.5em),  // for len <=2, ==3, >=4
-
-  /// Filters TCY tokens: only 1-2 char runs stay as TCY.
-  /// Runs of 3+ are split into individual vertical characters.
+  pattern: regex("^[A-Za-z0-9,]+$"),
+  sizes: (1em, 0.65em, 0.5em), // for len <=2, ==3, >=4
+  /// Filters TCY tokens: only 1-2 digit runs stay as TCY.
+  /// Alphabetic or mixed alphanumeric runs, and 3+ digit runs, become `turn`.
   filter: (tokens, module, config) => {
     let new-tokens = ()
     for t in tokens {
       if t.type == "tcy" {
-        if t.text.clusters().len() <= 2 {
+        let clusters = t.text.clusters()
+        let is-digits = true
+        for ch in clusters {
+          if ch.match(regex("^[0-9]$")) == none {
+            is-digits = false
+          }
+        }
+
+        if is-digits and clusters.len() <= 2 {
           new-tokens.push(t)
         } else {
-          for ch in t.text.clusters() {
-            new-tokens.push((type: "char", text: ch))
-          }
+          new-tokens.push((type: "turn", text: t.text))
         }
       } else {
         new-tokens.push(t)
@@ -42,8 +47,7 @@
 /// Bundles character normalization, dash scaling, and custom node renderers.
 #let default-rendering = (
   dash-scale: 1.25em,
-  node-renderers: (:),  // type-name -> (token, font, config) => content
-
+  node-renderers: (:), // type-name -> (token, font, config) => content
   /// Normalizes problematic characters.
   /// U+2014 (EM DASH) and U+2500 (BOX DRAWING) → U+2015 (HORIZONTAL BAR).
   transform: (tokens, module, config) => {
@@ -70,24 +74,21 @@
 #let default-opts = (
   font: none,
   features: ("vert", "vrt2"),
-
   sizing: (
     char-box: 1em,
     ruby-size: 0.5em,
     ruby-offset: 1em,
-    heading-scales: (1.5, 1.3, 1.15),   // h1, h2, h3
+    heading-scales: (1.5, 1.3, 1.15), // h1, h2, h3
   ),
-
   layout: (
     columns: 1,
     gap: 1em,
     column-gap: 2em,
-    hooks: (),  // array of (cols, font, gap, config) => content; last wins
+    hooks: (), // array of (cols, font, gap, config) => content; last wins
   ),
-
-  kinsoku: (burasagari,),            // array of self-contained rule modules
-  tcy: (default-tcy,),               // array of self-contained tcy modules
-  rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock),   // array of self-contained rendering modules
+  kinsoku: (burasagari,), // array of self-contained rule modules
+  tcy: (default-tcy,), // array of self-contained tcy modules
+  rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock), // array of self-contained rendering modules
 )
 
 // ---------------------------------------------------------------------------
