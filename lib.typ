@@ -3,6 +3,8 @@
 
 #import "src/layout.typ": layout-tate
 #import "src/flatten.typ": flatten
+#import "src/config.typ": default-opts, merge-config, default-tcy, default-rendering
+#import "src/kinsoku.typ": burasagari, oikomi
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).
 ///
@@ -20,10 +22,30 @@
 /// Renders native Typst content vertically (tategaki / 縦書き).
 ///
 /// - body (content | str): The content to render vertically.
-/// - font (str): Font family to use. Defaults to "Harano Aji Mincho".
-/// - columns (int): Number of horizontal rows (段組み) to split the page into.
-/// - column-gap (length): Gap between horizontal rows.
+/// - font (str): Font family to use. Overrides config if provided.
+/// - columns (int): Number of horizontal rows (段組み). Overrides config if provided.
+/// - column-gap (length): Gap between horizontal rows. Overrides config if provided.
+/// - config (dictionary): Custom Dependency Injection configuration.
 /// -> content: Vertically rendered paginated content.
-#let tate(body, font: "Harano Aji Mincho", columns: 1, column-gap: 2em) = {
-  layout-tate(flatten(body), font, columns: columns, column-gap: column-gap)
+#let tate(body, font: none, columns: none, column-gap: none, config: (:)) = {
+  // Merge user config with defaults
+  let cfg = merge-config(default-opts, config)
+  
+  // Legacy params override config for backward compatibility
+  if font != none { cfg.font = font }
+  if columns != none { cfg.layout.insert("columns", columns) }
+  if column-gap != none { cfg.layout.column-gap = column-gap }
+
+  let tokens = flatten(body, cfg)
+  
+  // Run rendering module hooks (normalization etc.)
+  for module in cfg.rendering {
+    tokens = (module.transform)(tokens, module, cfg)
+  }
+  // Run TCY module hooks (filtering etc.)
+  for module in cfg.tcy {
+    tokens = (module.filter)(tokens, module, cfg)
+  }
+  
+  layout-tate(tokens, cfg)
 }
