@@ -51,7 +51,16 @@
       continue
     }
 
-
+    if token.type == "vblock" or token.type == "hblock" {
+      if current-col.len() > 0 {
+        columns.push(current-col)
+      }
+      columns.push((token,))
+      current-col = ()
+      current-height = 0pt
+      i += 1
+      continue
+    }
     if current-height > 0pt and current-height + h > max-height {
       // Column is full — consult kinsoku modules in order.
       // First non-"break" result wins.

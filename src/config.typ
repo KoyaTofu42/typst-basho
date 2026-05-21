@@ -59,6 +59,7 @@
 #import "spacing.typ": default-spacing
 #import "turn.typ": default-turn
 #import "vblock.typ": default-vblock
+#import "hblock.typ": default-hblock
 
 
 // ---------------------------------------------------------------------------
@@ -86,7 +87,7 @@
 
   kinsoku: (burasagari,),            // array of self-contained rule modules
   tcy: (default-tcy,),               // array of self-contained tcy modules
-  rendering: (default-rendering, default-spacing, default-turn, default-vblock),   // array of self-contained rendering modules
+  rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock),   // array of self-contained rendering modules
 )
 
 // ---------------------------------------------------------------------------

@@ -33,26 +33,19 @@
       } else {
         tokens.push((type: "turn", text: c))
       }
-    } else if fname == "figure" {
-      tokens.push((type: "vblock", text: c))
     } else if fname == "space" {
       tokens.push((type: "char", text: " "))
     } else if fname == "parbreak" or fname == "linebreak" {
       tokens.push((type: "newline", text: "\n"))
     } else if fname == "heading" {
-      // Headings: insert column break before, flatten body with heading level, break after
       tokens.push((type: "newline", text: "\n"))
       let level = c.depth
       let inner = flatten(c.body, config)
       inner = inner.map(t => t + (heading: level))
       tokens += inner
       tokens.push((type: "newline", text: "\n"))
-    } else if c.has("children") {
-      for child in c.children {
-        tokens += flatten(child, config)
-      }
-    } else if c.has("body") {
-      // Elements like strong, emph, underline
+    } else if fname in ("strong", "emph", "underline", "strike", "overline", "highlight") {
+      // Inline formatting elements
       let inner = flatten(c.body, config)
       if fname == "strong" {
         inner = inner.map(t => t + (bold: true))
@@ -60,9 +53,16 @@
         inner = inner.map(t => t + (italic: true))
       }
       tokens += inner
+    } else if c.has("children") {
+      for child in c.children {
+        tokens += flatten(child, config)
+      }
     } else if c.has("text") {
       // Native text elements
       tokens += tokenize(c.text, config)
+    } else {
+      // Anything else (figures, images, shapes, unhandled blocks)
+      tokens.push((type: "hblock", text: c))
     }
   }
   

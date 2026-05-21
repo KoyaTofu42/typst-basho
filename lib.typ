@@ -24,6 +24,10 @@
 /// Ideal for multiline equations or block elements that stretch horizontally forever.
 #let vblock(body) = metadata((type: "vblock", text: body))
 
+/// Renders arbitrary content upright (not rotated) in the middle of a paragraph.
+/// Ideal for figures, images, or elements that should maintain their original orientation.
+#let hblock(body) = metadata((type: "hblock", text: body))
+
 /// Attaches phonetic ruby (furigana) to base characters.
 ///
 /// - base (str): The base text (e.g. "漢字").
