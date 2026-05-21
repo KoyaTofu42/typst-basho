@@ -26,6 +26,15 @@
         // Custom macros like ruby() or tcy() injected via metadata
         tokens.push(c.value)
       }
+    } else if fname == "equation" {
+      let is-block = c.at("block", default: false)
+      if is-block {
+        tokens.push((type: "vblock", text: c))
+      } else {
+        tokens.push((type: "turn", text: c))
+      }
+    } else if fname == "figure" {
+      tokens.push((type: "vblock", text: c))
     } else if fname == "space" {
       tokens.push((type: "char", text: " "))
     } else if fname == "parbreak" or fname == "linebreak" {
