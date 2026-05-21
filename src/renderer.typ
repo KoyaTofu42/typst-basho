@@ -3,29 +3,7 @@
 
 #import "kinsoku.typ": is-opening, is-closing
 
-/// Wraps a single character in a 1em × 1em box with vertical OpenType features.
-/// Alignment within the box depends on bracket type:
-/// - Opening brackets (「 etc.) → left-aligned
-/// - Closing brackets (」 etc.) → right-aligned
-/// - All other characters → center-aligned
-///
-/// - body (content): The character content to render.
-/// - font (str): Font family name.
-/// - h-align (alignment): Horizontal alignment override.
-/// -> content: A box containing the vertically-oriented character.
-#let char-box(body, font, h-align: center) = {
-  box(
-    width: 1em,
-    height: 1em,
-    align(h-align + horizon,
-      text(
-        font: font,
-        features: ("vert", "vrt2"),
-        body,
-      )
-    )
-  )
-}
+#import "char-box.typ": char-box
 
 /// Renders a TCY (tate-chu-yoko) run: horizontal text rotated 90° to sit inline
 /// within the vertical flow. Width is 1em (column width), height adapts to
@@ -69,8 +47,10 @@
   )
 }
 
+#import "ruby.typ": render-ruby
+
 /// Renders a single token based on its type.
-/// Dispatches "char" → char-box, "tcy" → render-tcy, "hanging" → render-hanging.
+/// Dispatches "char" → char-box, "tcy" → render-tcy, "hanging" → render-hanging, "ruby" → render-ruby.
 ///
 /// - token (dictionary): A token dictionary with at least a `type` and `text` field.
 /// - font (str): Font family name.
@@ -86,5 +66,7 @@
     render-tcy(token, font)
   } else if token.type == "hanging" {
     render-hanging(token, font)
+  } else if token.type == "ruby" {
+    render-ruby(token, font)
   }
 }
