@@ -64,10 +64,11 @@
 /// - config (dictionary): The layout configuration.
 /// -> content: Rendered content for the token.
 #let render-char-token(token, font, config) = {
-  // Check injected node-renderers from the rendering module
-  let render-module = config.rendering.first()
-  if token.type in render-module.node-renderers {
-    return (render-module.node-renderers.at(token.type))(token, font, config)
+  // Check injected node-renderers from all rendering modules
+  for render-module in config.rendering {
+    if "node-renderers" in render-module and token.type in render-module.node-renderers {
+      return (render-module.node-renderers.at(token.type))(token, font, config)
+    }
   }
 
   let heading-level = token.at("heading", default: none)

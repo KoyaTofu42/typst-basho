@@ -12,6 +12,18 @@
 /// -> content: Metadata tag instructing the engine to render as TCY.
 #let tcy(body) = metadata((type: "tcy", text: body))
 
+/// Renders arbitrary content rotated 90 degrees clockwise.
+/// Useful for vertical equations, figures, or nested blocks where you want
+/// to preserve native font settings.
+///
+/// - body (content): The content to rotate.
+/// -> content: Metadata tag instructing the engine to render as rotated content.
+#let turn(body) = metadata((type: "turn", text: body))
+
+/// Renders arbitrary content rotated 90 degrees clockwise without restricting width.
+/// Ideal for multiline equations or block elements that stretch horizontally forever.
+#let vblock(body) = metadata((type: "vblock", text: body))
+
 /// Attaches phonetic ruby (furigana) to base characters.
 ///
 /// - base (str): The base text (e.g. "漢字").
@@ -40,7 +52,9 @@
   
   // Run rendering module hooks (normalization etc.)
   for module in cfg.rendering {
-    tokens = (module.transform)(tokens, module, cfg)
+    if "transform" in module {
+      tokens = (module.transform)(tokens, module, cfg)
+    }
   }
   // Run TCY module hooks (filtering etc.)
   for module in cfg.tcy {

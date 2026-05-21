@@ -51,6 +51,17 @@
       continue
     }
     
+    if token.type == "vblock" {
+      if current-col.len() > 0 {
+        columns.push(current-col)
+      }
+      columns.push((token,))
+      current-col = ()
+      current-height = 0pt
+      i += 1
+      continue
+    }
+    
     if current-height > 0pt and current-height + h > max-height {
       // Column is full — consult kinsoku modules in order.
       // First non-"break" result wins.
@@ -175,14 +186,15 @@
         let usable-height = (size.height - (config.layout.columns - 1) * col-gap-abs) / config.layout.columns
 
         let gap-abs = measure(h(config.layout.gap)).width
-        let col-slot = measure(box(width: config.sizing.char-box)).width + gap-abs
-        let max-cols = calc.max(1, calc.floor(size.width / col-slot))
 
         let cols = paginate(tokens, heights, usable-height, config)
+        let col-widths = cols.map(col => measure(render-column(col, config.font, config)).width)
 
         _pagination-state.update((
           cols: cols,
-          max-cols: max-cols,
+          col-widths: col-widths,
+          gap: gap-abs,
+          page-width: size.width,
           config: config,
         ))
       })
@@ -196,35 +208,51 @@
       }
 
       let cols = info.cols
+      let col-widths = info.col-widths
       let result = []
       let i = 0
       
-      let cols-per-page = info.max-cols * info.config.layout.columns
+      let num-segments = info.config.layout.columns
 
       while i < cols.len() {
         if i > 0 {
           result += colbreak()
         }
         
-        let page-end = calc.min(i + cols-per-page, cols.len())
-        let page-slices = cols.slice(i, page-end)
-        
         let rows = ()
-        let r = 0
-        while r < page-slices.len() {
-          let row-end = calc.min(r + info.max-cols, page-slices.len())
-          let row-cols = page-slices.slice(r, row-end)
-          rows.push(render-page(row-cols, info.config.font, info.config.layout.gap, info.config))
-          r += info.max-cols
+        let segment = 0
+        while segment < num-segments {
+          if i >= cols.len() { break }
+          
+          let segment-cols = ()
+          let current-w = 0pt
+          
+          while i < cols.len() {
+            let w = col-widths.at(i)
+            let add-w = if segment-cols.len() == 0 { w } else { w + info.gap }
+            
+            if current-w > 0pt and current-w + add-w > info.page-width {
+              break
+            }
+            
+            segment-cols.push(cols.at(i))
+            current-w += add-w
+            i += 1
+          }
+          
+          if segment-cols.len() > 0 {
+            rows.push(render-page(segment-cols, info.config.font, info.config.layout.gap, info.config))
+          }
+          segment += 1
         }
         
-        result += stack(
-          dir: ttb,
-          spacing: info.config.layout.column-gap,
-          ..rows
-        )
-        
-        i += cols-per-page
+        if rows.len() > 0 {
+          result += stack(
+            dir: ttb,
+            spacing: info.config.layout.column-gap,
+            ..rows
+          )
+        }
       }
       result
     }
