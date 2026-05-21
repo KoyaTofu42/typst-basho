@@ -124,6 +124,13 @@
     render-hanging(token, font, config)
   } else if token.type == "ruby" {
     render-ruby(token, font, config)
+  } else if token.type == "heading-anchor" {
+    box(
+      width: 0pt,
+      height: 0pt,
+      clip: true,
+      heading(level: token.level, outlined: true, bookmarked: true, token.body)
+    )
   } else {
     none
   }

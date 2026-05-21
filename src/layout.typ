@@ -172,7 +172,7 @@
     #place(context {
       layout(size => {
         let heights = tokens.map(token => {
-          if token.type == "newline" {
+          if token.type == "newline" or token.type == "heading-anchor" {
             0pt
           } else {
             measure(render-char-token(token, config.font, config)).height

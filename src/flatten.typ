@@ -39,7 +39,8 @@
       tokens.push((type: "newline", text: "\n"))
     } else if fname == "heading" {
       tokens.push((type: "newline", text: "\n"))
-      let level = c.depth
+      let level = c.at("depth", default: c.at("level", default: 1))
+      tokens.push((type: "heading-anchor", level: level, body: c.body))
       let inner = flatten(c.body, config)
       inner = inner.map(t => t + (heading: level))
       tokens += inner
