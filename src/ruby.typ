@@ -41,7 +41,7 @@
         align(center + horizon,
           text(
             size: config.sizing.ruby-size,
-            font: font,
+            ..(if font != none { (font: font) } else { (:) }),
             features: config.features,
             ch
           )

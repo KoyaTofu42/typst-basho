@@ -17,16 +17,17 @@
 /// -> content: A box containing the vertically-oriented character.
 #let char-box(body, font, config, h-align: center) = {
   let render-module = config.rendering.first()
+  let f-opt = if font != none { (font: font) } else { (:) }
   let inner = if body == "―" {
     text(
-      font: font,
+      ..f-opt,
       size: render-module.dash-scale,
       features: config.features,
       body,
     )
   } else {
     text(
-      font: font,
+      ..f-opt,
       features: config.features,
       body,
     )

@@ -68,7 +68,7 @@
 
 /// Default options dictionary for Basho.
 #let default-opts = (
-  font: "Harano Aji Mincho",
+  font: none,
   features: ("vert", "vrt2"),
 
   sizing: (

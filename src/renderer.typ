@@ -16,6 +16,7 @@
 /// - config (dictionary): The layout configuration.
 /// -> content: Horizontal text in a 1em × 1em box.
 #let render-tcy(token, font, config) = {
+  let f-opt = if font != none { (font: font) } else { (:) }
   let len = token.text.clusters().len()
   let tcy-module = config.tcy.first()
   let sizes = tcy-module.sizes
@@ -26,7 +27,7 @@
     width: config.sizing.char-box,
     height: config.sizing.char-box,
     align(center + horizon,
-      text(font: font, size: sz, token.text),
+      text(..f-opt, size: sz, token.text),
     )
   )
 }
@@ -40,13 +41,14 @@
 /// - config (dictionary): The layout configuration.
 /// -> content: Zero-height box with the character.
 #let render-hanging(token, font, config) = {
+  let f-opt = if font != none { (font: font) } else { (:) }
   box(
     width: config.sizing.char-box,
     height: 0pt,
     clip: false,
     align(center + top,
       text(
-        font: font,
+        ..f-opt,
         features: config.features,
         token.text,
       )
@@ -64,7 +66,7 @@
 /// - config (dictionary): The layout configuration.
 /// -> content: Rendered content for the token.
 #let render-char-token(token, font, config) = {
-
+  let f-opt = if font != none { (font: font) } else { (:) }
 
   // Check injected node-renderers from all rendering modules
   for render-module in config.rendering {
@@ -107,7 +109,7 @@
         height: sz,
         align(h-align + horizon,
           text(
-            font: font,
+            ..f-opt,
             size: config.sizing.char-box * font-scale,
             features: config.features,
             weight: "bold",
