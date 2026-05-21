@@ -1,7 +1,8 @@
 // src/layout.typ
-// Vertical layout with auto-pagination and RTL multi-column support (Phase 4)
+// Vertical layout with auto-pagination, RTL multi-column, and kinsoku shori (Phase 5)
 
 #import "renderer.typ": render-char-token
+#import "kinsoku.typ": apply-kinsoku
 
 /// Renders a single column of tokens as a top-to-bottom vertical stack.
 ///
@@ -109,8 +110,8 @@
         let col-slot = measure(box(width: 1em)).width + gap-abs
         let max-cols = calc.max(1, calc.floor(size.width / col-slot))
 
-        // Paginate using actual measured heights
-        let cols = paginate(tokens, heights, size.height)
+        // Paginate using actual measured heights, then apply kinsoku rules
+        let cols = apply-kinsoku(paginate(tokens, heights, size.height))
 
         _pagination-state.update((
           cols: cols,
