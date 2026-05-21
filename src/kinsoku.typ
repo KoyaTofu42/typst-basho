@@ -25,6 +25,19 @@
   token.text.match(_opening-re) != none
 }
 
+/// Regex matching characters that are allowed to hang (burasagari).
+/// Only commas and periods.
+#let _hanging-re = regex("^[\u{3001}\u{3002}\u{ff0c}\u{ff0e}]$")
+
+/// Checks whether a token's text is allowed to hang out of the column bottom.
+///
+/// - token (dictionary): A token dictionary.
+/// -> bool
+#let is-hanging(token) = {
+  if token.type != "char" { return false }
+  token.text.match(_hanging-re) != none
+}
+
 /// Checks whether a token's text is in the closing set.
 ///
 /// - token (dictionary): A token dictionary.

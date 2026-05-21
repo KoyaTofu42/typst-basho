@@ -56,7 +56,7 @@
 /// - font (str): Font family name.
 /// -> content: Rendered content for the token.
 #let render-char-token(token, font) = {
-  if token.type == "char" {
+  let rendered = if token.type == "char" {
     // Determine horizontal alignment based on bracket type
     let h-align = if is-opening(token) { right }
       else if is-closing(token) { left }
@@ -68,5 +68,14 @@
     render-hanging(token, font)
   } else if token.type == "ruby" {
     render-ruby(token, font)
+  } else {
+    none
   }
+
+  if rendered != none {
+    if token.at("bold", default: false) { rendered = strong(rendered) }
+    if token.at("italic", default: false) { rendered = emph(rendered) }
+  }
+  
+  rendered
 }
