@@ -56,12 +56,36 @@
 /// - font (str): Font family name.
 /// -> content: Rendered content for the token.
 #let render-char-token(token, font) = {
+  let heading-level = token.at("heading", default: none)
+  let font-scale = if heading-level == 1 { 1.5 }
+    else if heading-level == 2 { 1.3 }
+    else if heading-level == 3 { 1.15 }
+    else { 1.0 }
+
   let rendered = if token.type == "char" {
     // Determine horizontal alignment based on bracket type
     let h-align = if is-opening(token) { right }
       else if is-closing(token) { left }
       else { center }
-    char-box(token.text, font, h-align: h-align)
+    if heading-level != none {
+      // Heading characters: scaled box
+      let sz = 1em * font-scale
+      box(
+        width: sz,
+        height: sz,
+        align(h-align + horizon,
+          text(
+            font: font,
+            size: 1em * font-scale,
+            features: ("vert", "vrt2"),
+            weight: "bold",
+            token.text,
+          )
+        )
+      )
+    } else {
+      char-box(token.text, font, h-align: h-align)
+    }
   } else if token.type == "tcy" {
     render-tcy(token, font)
   } else if token.type == "hanging" {

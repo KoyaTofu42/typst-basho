@@ -29,6 +29,14 @@
       tokens.push((type: "char", text: " "))
     } else if fname == "parbreak" or fname == "linebreak" {
       tokens.push((type: "newline", text: "\n"))
+    } else if fname == "heading" {
+      // Headings: insert column break before, flatten body with heading level, break after
+      tokens.push((type: "newline", text: "\n"))
+      let level = c.depth
+      let inner = flatten(c.body)
+      inner = inner.map(t => t + (heading: level))
+      tokens += inner
+      tokens.push((type: "newline", text: "\n"))
     } else if c.has("children") {
       for child in c.children {
         tokens += flatten(child)
