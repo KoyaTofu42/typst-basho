@@ -1,21 +1,21 @@
 // src/layout.typ
-// Vertical layout with auto-pagination, RTL multi-column, and kinsoku shori (Phase 5)
+// Vertical layout with auto-pagination, RTL multi-column, and kinsoku shori
 
 #import "renderer.typ": render-char-token
-#import "kinsoku.typ": apply-kinsoku
 
 /// Renders a single column of tokens as a top-to-bottom vertical stack.
 ///
 /// - tokens (array): Array of token dictionaries for this column.
 /// - font (str): Font family name.
+/// - config (dictionary): Layout configuration.
 /// -> content: A vertical stack of rendered character boxes.
-#let render-column(tokens, font) = {
+#let render-column(tokens, font, config) = {
   if tokens.len() == 0 {
     // Empty column gets a minimum-height placeholder to preserve spacing
-    return box(width: 1em, height: 1em)
+    return box(width: config.sizing.char-box, height: config.sizing.char-box)
   }
 
-  let rendered = tokens.map(token => render-char-token(token, font))
+  let rendered = tokens.map(token => render-char-token(token, font, config))
 
   stack(
     dir: ttb,
@@ -24,18 +24,16 @@
   )
 }
 
-#import "kinsoku.typ": is-opening, is-closing, is-hanging
-
 /// Splits a flat token array into column groups based on a maximum height
 /// (absolute length). Uses pre-measured token heights for accuracy,
-/// and natively integrates kinsoku shori (line breaking rules) sequentially
-/// to ensure text reflows correctly without leaving gaps.
+/// and consults config.kinsoku module array for line-breaking decisions.
 ///
 /// - tokens (array): Array of token dictionaries.
 /// - heights (array): Parallel array of absolute heights per token.
 /// - max-height (length): Maximum column height as absolute length.
+/// - config (dictionary): The layout configuration.
 /// -> array: Array of arrays, each sub-array is one column's tokens.
-#let paginate(tokens, heights, max-height) = {
+#let paginate(tokens, heights, max-height, config) = {
   let columns = ()
   let current-col = ()
   let current-height = 0pt
@@ -54,10 +52,18 @@
     }
     
     if current-height > 0pt and current-height + h > max-height {
-      // Column is full
-      
-      // 1. Kinsoku check: if current token is hanging punctuation (comma/period), pull it in
-      if is-hanging(token) {
+      // Column is full — consult kinsoku modules in order.
+      // First non-"break" result wins.
+      let decision = (action: "break")
+      for rules in config.kinsoku {
+        let d = (rules.decide)(current-col, token, rules)
+        if d.action != "break" {
+          decision = d
+          break
+        }
+      }
+
+      if decision.action == "hang" {
         let hanging-token = token
         hanging-token.type = "hanging"
         current-col.push(hanging-token)
@@ -66,19 +72,28 @@
         current-height = 0pt
         i += 1
         continue
-      }
-      
-      // 2. Kinsoku check: if current token is closing (small kana, chōonpu, brackets),
-      // we must NOT start the next line with it. We push the LAST token of current-col
-      // to the next line (Oidashi / 追い出し).
-      if is-closing(token) {
-        if current-col.len() > 0 {
-          let popped = current-col.pop()
+      } else if decision.action == "pull-in" {
+        let pull-token = token
+        pull-token.type = "hanging"
+        current-col.push(pull-token)
+        columns.push(current-col)
+        current-col = ()
+        current-height = 0pt
+        i += 1
+        continue
+      } else if decision.action == "push-out" {
+        let count = decision.count
+        if current-col.len() >= count {
+          let popped = ()
+          while count > 0 {
+            popped.insert(0, current-col.pop())
+            count -= 1
+          }
           columns.push(current-col)
-          current-col = (popped, token)
-          current-height = heights.at(i - 1) + h
+          current-col = popped + (token,)
+          current-height = heights.slice(i - decision.count, i + 1).sum()
         } else {
-          columns.push(())
+          columns.push(current-col)
           current-col = (token,)
           current-height = h
         }
@@ -86,17 +101,7 @@
         continue
       }
       
-      // 3. Kinsoku check: if last token in current column is an opening bracket, push it out
-      if current-col.len() > 0 and is-opening(current-col.last()) {
-        let popped = current-col.pop()
-        columns.push(current-col)
-        current-col = (popped, token)
-        current-height = heights.at(i - 1) + h
-        i += 1
-        continue
-      }
-      
-      // Normal break
+      // Normal break (all modules returned "break")
       columns.push(current-col)
       current-col = (token,)
       current-height = h
@@ -120,9 +125,14 @@
 /// - cols (array): Array of column token arrays for this page.
 /// - font (str): Font family name.
 /// - gap (length): Horizontal gap between columns.
+/// - config (dictionary): The layout configuration.
 /// -> content: RTL-arranged vertical columns.
-#let render-page(cols, font, gap) = {
-  let rendered = cols.map(col => render-column(col, font))
+#let render-page(cols, font, gap, config) = {
+  // Check layout hooks — last one wins
+  if config.layout.hooks.len() > 0 {
+    return config.layout.hooks.last()(cols, font, gap, config)
+  }
+  let rendered = cols.map(col => render-column(col, font, config))
   align(right + top,
     stack(
       dir: rtl,
@@ -139,49 +149,41 @@
 /// Pass 2: context block reads pre-computed columns and renders with pagebreaks.
 ///
 /// - tokens (array): Array of token dictionaries.
-/// - font (str): Font family name.
-/// - gap (length): Horizontal gap between columns.
+/// - config (dictionary): Configuration dictionary.
 /// -> content: Fully paginated vertical text.
-#let layout-tate(tokens, font, gap: 1em, columns: 1, column-gap: 2em) = {
+#let layout-tate(tokens, config) = {
   if tokens.len() == 0 {
     return []
   }
 
-  // Return as content block with suppressed paragraph/block spacing.
-  // Without this, place() adds paragraph spacing before the render context,
-  // creating a visible blank gap at the top/bottom of each page.
   [
     #set par(spacing: 0pt)
     #set block(spacing: 0pt)
 
     // Pass 1: measure page dimensions and actual token heights.
-    // place() takes zero flow space.
     #place(context {
       layout(size => {
-        // Measure actual rendered height of each token
         let heights = tokens.map(token => {
           if token.type == "newline" {
             0pt
           } else {
-            measure(render-char-token(token, font)).height
+            measure(render-char-token(token, config.font, config)).height
           }
         })
 
-        let usable-height = (size.height - (columns - 1) * column-gap) / columns
+        let col-gap-abs = measure(v(config.layout.column-gap)).height
+        let usable-height = (size.height - (config.layout.columns - 1) * col-gap-abs) / config.layout.columns
 
-        let gap-abs = measure(h(gap)).width
-        let col-slot = measure(box(width: 1em)).width + gap-abs
+        let gap-abs = measure(h(config.layout.gap)).width
+        let col-slot = measure(box(width: config.sizing.char-box)).width + gap-abs
         let max-cols = calc.max(1, calc.floor(size.width / col-slot))
 
-        // Paginate using actual measured heights into the usable height segments.
-        // Kinsoku shori is integrated natively inside the pagination algorithm.
-        let cols = paginate(tokens, heights, usable-height)
+        let cols = paginate(tokens, heights, usable-height, config)
 
         _pagination-state.update((
           cols: cols,
           max-cols: max-cols,
-          columns: columns,
-          column-gap: column-gap,
+          config: config,
         ))
       })
     })
@@ -197,7 +199,7 @@
       let result = []
       let i = 0
       
-      let cols-per-page = info.max-cols * info.columns
+      let cols-per-page = info.max-cols * info.config.layout.columns
 
       while i < cols.len() {
         if i > 0 {
@@ -212,13 +214,13 @@
         while r < page-slices.len() {
           let row-end = calc.min(r + info.max-cols, page-slices.len())
           let row-cols = page-slices.slice(r, row-end)
-          rows.push(render-page(row-cols, font, gap))
+          rows.push(render-page(row-cols, info.config.font, info.config.layout.gap, info.config))
           r += info.max-cols
         }
         
         result += stack(
           dir: ttb,
-          spacing: info.column-gap,
+          spacing: info.config.layout.column-gap,
           ..rows
         )
         
@@ -230,7 +232,8 @@
 }
 
 /// Convenience wrapper (backward compat).
+#import "config.typ": default-opts, merge-config
 #let render-tokens(tokens, font, gap: 1em, columns: 1, column-gap: 2em) = {
-  layout-tate(tokens, font, gap: gap, columns: columns, column-gap: column-gap)
+  let cfg = merge-config(default-opts, (font: font, layout: (gap: gap, columns: columns, column-gap: column-gap)))
+  layout-tate(tokens, cfg)
 }
-
