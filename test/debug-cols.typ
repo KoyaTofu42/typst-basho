@@ -2,26 +2,16 @@
 
 #set page(width: 300pt, height: 400pt, margin: 10pt)
 
-#set text(font: "Harano Aji Mincho", size: 12pt)
-
-#set heading(numbering: "1")
-
 #tate[
   = 吾輩は猫である
   == 第一章
-
   吾輩（わがはい）は猫である。名前はまだ無い。
 ]
 
-#set text(font: "Hiragino Maru Gothic ProN", size: 12pt)
-
 #tate[
-  bbbbbb
-
-  aaaaaaa
-
   = ポラーノの広場
   == 第一章
-
   あのイーハトーヴォのすきとおった風、夏でも底に冷たさをもつ青いそら、うつくしい森で飾られたモリーオ市、郊外のぎらぎらひかる草の波。
 ]
+
+}

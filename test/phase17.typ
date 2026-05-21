@@ -3,6 +3,8 @@
 #set page(width: 300pt, height: 400pt, margin: 10pt)
 #set text(font: "Harano Aji Mincho", size: 12pt)
 
+#set heading(numbering: "1")
+
 #tate[
   = 吾輩は猫である
 
