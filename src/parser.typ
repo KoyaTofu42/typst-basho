@@ -9,9 +9,10 @@
 /// Tests whether a character cluster is an ASCII Latin letter or digit.
 ///
 /// - ch (str): A single character cluster.
+/// - config (dictionary): The layout configuration.
 /// -> bool
-#let is-tcy-char(ch) = {
-  ch.match(regex("^[A-Za-z0-9]+$")) != none
+#let is-tcy-char(ch, config) = {
+  ch.match(config.tcy.first().pattern) != none
 }
 
 /// Splits an input string into an array of tokens.
@@ -20,8 +21,9 @@
 /// - Everything else → type "char" (one per cluster)
 ///
 /// - input (str): The string to tokenize.
+/// - config (dictionary): The layout configuration.
 /// -> array: Array of token dictionaries.
-#let tokenize(input) = {
+#let tokenize(input, config) = {
   if input == "" {
     return ()
   }
@@ -37,7 +39,7 @@
         tcy-buf = ""
       }
       tokens.push((type: "newline", text: "\n"))
-    } else if is-tcy-char(ch) {
+    } else if is-tcy-char(ch, config) {
       // Accumulate Latin/digit run
       tcy-buf += ch
     } else {

@@ -7,16 +7,17 @@
 /// This enables support for inline macros (like `#ruby`) and native styling (like `*bold*`).
 ///
 /// - c (content | str | array): The content to flatten.
+/// - config (dictionary): The layout configuration.
 /// -> array: An array of token dictionaries.
-#let flatten(c) = {
+#let flatten(c, config) = {
   let tokens = ()
   
   if type(c) == array {
     for child in c {
-      tokens += flatten(child)
+      tokens += flatten(child, config)
     }
   } else if type(c) == str {
-    tokens += tokenize(c)
+    tokens += tokenize(c, config)
   } else if type(c) == content {
     let fname = repr(c.func())
     
@@ -33,17 +34,17 @@
       // Headings: insert column break before, flatten body with heading level, break after
       tokens.push((type: "newline", text: "\n"))
       let level = c.depth
-      let inner = flatten(c.body)
+      let inner = flatten(c.body, config)
       inner = inner.map(t => t + (heading: level))
       tokens += inner
       tokens.push((type: "newline", text: "\n"))
     } else if c.has("children") {
       for child in c.children {
-        tokens += flatten(child)
+        tokens += flatten(child, config)
       }
     } else if c.has("body") {
       // Elements like strong, emph, underline
-      let inner = flatten(c.body)
+      let inner = flatten(c.body, config)
       if fname == "strong" {
         inner = inner.map(t => t + (bold: true))
       } else if fname == "emph" {
@@ -52,7 +53,7 @@
       tokens += inner
     } else if c.has("text") {
       // Native text elements
-      tokens += tokenize(c.text)
+      tokens += tokenize(c.text, config)
     }
   }
   
