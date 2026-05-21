@@ -3,20 +3,6 @@
 
 #import "renderer.typ": render-char-token
 
-/// Estimates the vertical height of a token in em units.
-/// "char" tokens are 1em; "tcy" tokens scale by character count.
-///
-/// - token (dictionary): A token dictionary.
-/// -> float: Estimated height in em units.
-#let token-height-em(token) = {
-  if token.type == "tcy" {
-    // Rotated Latin text: approximate width-per-char ~0.6em becomes height
-    calc.max(1, token.text.clusters().len() * 0.6)
-  } else {
-    1
-  }
-}
-
 /// Renders a single column of tokens as a top-to-bottom vertical stack.
 ///
 /// - tokens (array): Array of token dictionaries for this column.
@@ -38,26 +24,27 @@
 }
 
 /// Splits a flat token array into column groups based on a maximum height
-/// (in em units). Newline tokens force a column break.
+/// (absolute length). Uses pre-measured token heights for accuracy.
 ///
 /// - tokens (array): Array of token dictionaries.
-/// - max-height-em (float): Maximum column height in em units.
+/// - heights (array): Parallel array of absolute heights per token.
+/// - max-height (length): Maximum column height as absolute length.
 /// -> array: Array of arrays, each sub-array is one column's tokens.
-#let paginate(tokens, max-height-em) = {
+#let paginate(tokens, heights, max-height) = {
   let columns = ((),)
-  let current-height = 0
+  let current-height = 0pt
 
-  for token in tokens {
+  for (i, token) in tokens.enumerate() {
     if token.type == "newline" {
       // Newline forces a column break
       columns.push(())
-      current-height = 0
+      current-height = 0pt
     } else {
-      let h = token-height-em(token)
-      if current-height > 0 and current-height + h > max-height-em {
+      let h = heights.at(i)
+      if current-height > 0pt and current-height + h > max-height {
         // Doesn't fit — start a new column
         columns.push(())
-        current-height = 0
+        current-height = 0pt
       }
       columns.last().push(token)
       current-height += h
@@ -83,9 +70,11 @@
   )
 }
 
-/// Main layout entry point. Uses a two-pass approach:
-/// Pass 1: measure page dimensions via layout() inside place() (zero flow space).
-/// Pass 2: read state, paginate, and render with real pagebreaks.
+#let _pagination-state = state("basho-pagination", none)
+
+/// Main layout entry point. Two-pass approach:
+/// Pass 1: place() measures page dims + actual token heights, stores columns in state.
+/// Pass 2: context block reads pre-computed columns and renders with pagebreaks.
 ///
 /// - tokens (array): Array of token dictionaries.
 /// - font (str): Font family name.
@@ -96,51 +85,62 @@
     return []
   }
 
-  let _pagination-state = state("basho-pagination", none)
+  // Return as content block with suppressed paragraph/block spacing.
+  // Without this, place() adds paragraph spacing before the render context,
+  // creating a visible blank gap at the top/bottom of each page.
+  [
+    #set par(spacing: 0pt)
+    #set block(spacing: 0pt)
 
-  // Pass 1: measure page dimensions.
-  // Wrapped in block(spacing/below: 0pt) to suppress paragraph spacing
-  // that would otherwise create a blank gap before the rendered content.
-  // place() inside takes zero flow space.
-  block(spacing: 0pt, below: 0pt, context {
-    place(layout(size => {
-      let em-abs = measure(box(width: 1em, height: 1em)).width
-      let gap-abs = measure(h(gap)).width
-      let max-height-em = calc.max(1, calc.floor(size.height / em-abs))
-      let col-slot = em-abs + gap-abs
-      let max-cols = calc.max(1, calc.floor(size.width / col-slot))
+    // Pass 1: measure page dimensions and actual token heights.
+    // place() takes zero flow space.
+    #place(context {
+      layout(size => {
+        // Measure actual rendered height of each token
+        let heights = tokens.map(token => {
+          if token.type == "newline" {
+            0pt
+          } else {
+            measure(render-char-token(token, font)).height
+          }
+        })
 
-      _pagination-state.update((
-        max-height-em: max-height-em,
-        max-cols: max-cols,
-      ))
-    }))
-  })
+        let gap-abs = measure(h(gap)).width
+        let col-slot = measure(box(width: 1em)).width + gap-abs
+        let max-cols = calc.max(1, calc.floor(size.width / col-slot))
 
-  // Pass 2: read state and render with real pagebreaks.
-  // Must be bare context (not inside block) so pagebreak() works.
-  context {
-    let info = _pagination-state.get()
-    if info == none {
-      return []
-    }
+        // Paginate using actual measured heights
+        let cols = paginate(tokens, heights, size.height)
 
-    let cols = paginate(tokens, info.max-height-em)
+        _pagination-state.update((
+          cols: cols,
+          max-cols: max-cols,
+        ))
+      })
+    })
 
-    // Group columns into pages
-    let result = []
-    let i = 0
-    while i < cols.len() {
-      if i > 0 {
-        result += pagebreak()
+    // Pass 2: read pre-computed columns and render with real pagebreaks.
+    #context {
+      let info = _pagination-state.get()
+      if info == none {
+        return []
       }
-      let end = calc.min(i + info.max-cols, cols.len())
-      let page-cols = cols.slice(i, end)
-      result += render-page(page-cols, font, gap)
-      i += info.max-cols
+
+      let cols = info.cols
+      let result = []
+      let i = 0
+      while i < cols.len() {
+        if i > 0 {
+          result += pagebreak()
+        }
+        let end = calc.min(i + info.max-cols, cols.len())
+        let page-cols = cols.slice(i, end)
+        result += render-page(page-cols, font, gap)
+        i += info.max-cols
+      }
+      result
     }
-    result
-  }
+  ]
 }
 
 /// Convenience wrapper (backward compat).

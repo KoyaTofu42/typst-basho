@@ -4,7 +4,7 @@
 #import "../lib.typ": tate
 
 // Small page to force column breaks and page breaks
-#set page(width: 200pt, height: 150pt, margin: 20pt)
+#set page(width: 200pt, height: 150pt, margin: 10pt)
 #set text(size: 12pt)
 
 // Test 1: Long text that should auto-wrap into multiple columns
