@@ -7,20 +7,34 @@
 /// - Closing brackets (」 etc.) → right-aligned (or left-aligned depending on convention)
 /// - All other characters → center-aligned
 ///
+/// For U+2015 (Horizontal Bar / vertical dash), the text is rendered at
+/// `rendering.dash-scale` size so consecutive dashes concatenate seamlessly.
+///
 /// - body (content): The character content to render.
 /// - font (str): Font family name.
+/// - config (dictionary): The layout configuration.
 /// - h-align (alignment): Horizontal alignment override.
 /// -> content: A box containing the vertically-oriented character.
-#let char-box(body, font, h-align: center) = {
-  box(
-    width: 1em,
-    height: 1em,
-    align(h-align + horizon,
-      text(
-        font: font,
-        features: ("vert", "vrt2"),
-        body,
-      )
+#let char-box(body, font, config, h-align: center) = {
+  let render-module = config.rendering.first()
+  let inner = if body == "―" {
+    text(
+      font: font,
+      size: render-module.dash-scale,
+      features: config.features,
+      body,
     )
+  } else {
+    text(
+      font: font,
+      features: config.features,
+      body,
+    )
+  }
+
+  box(
+    width: config.sizing.char-box,
+    height: config.sizing.char-box,
+    align(h-align + horizon, inner)
   )
 }
