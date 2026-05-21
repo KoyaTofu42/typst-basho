@@ -37,12 +37,12 @@
   let columns = ()
   let current-col = ()
   let current-height = 0pt
-  
+
   let i = 0
   while i < tokens.len() {
     let token = tokens.at(i)
     let h = heights.at(i)
-    
+
     if token.type == "newline" {
       columns.push(current-col)
       current-col = ()
@@ -50,18 +50,8 @@
       i += 1
       continue
     }
-    
-    if token.type == "vblock" {
-      if current-col.len() > 0 {
-        columns.push(current-col)
-      }
-      columns.push((token,))
-      current-col = ()
-      current-height = 0pt
-      i += 1
-      continue
-    }
-    
+
+
     if current-height > 0pt and current-height + h > max-height {
       // Column is full — consult kinsoku modules in order.
       // First non-"break" result wins.
@@ -111,7 +101,7 @@
         i += 1
         continue
       }
-      
+
       // Normal break (all modules returned "break")
       columns.push(current-col)
       current-col = (token,)
@@ -120,14 +110,14 @@
       current-col.push(token)
       current-height += h
     }
-    
+
     i += 1
   }
-  
+
   if current-col.len() > 0 {
     columns.push(current-col)
   }
-  
+
   columns
 }
 
@@ -144,13 +134,11 @@
     return config.layout.hooks.last()(cols, font, gap, config)
   }
   let rendered = cols.map(col => render-column(col, font, config))
-  align(right + top,
-    stack(
-      dir: rtl,
-      spacing: gap,
-      ..rendered,
-    )
-  )
+  align(right + top, stack(
+    dir: rtl,
+    spacing: gap,
+    ..rendered,
+  ))
 }
 
 #let _pagination-state = state("basho-pagination", none)
@@ -187,15 +175,18 @@
 
         let gap-abs = measure(h(config.layout.gap)).width
 
-        let cols = paginate(tokens, heights, usable-height, config)
-        let col-widths = cols.map(col => measure(render-column(col, config.font, config)).width)
+        let cfg = config
+        cfg.insert("usable-height", usable-height)
+
+        let cols = paginate(tokens, heights, usable-height, cfg)
+        let col-widths = cols.map(col => measure(render-column(col, cfg.font, cfg)).width)
 
         _pagination-state.update((
           cols: cols,
           col-widths: col-widths,
           gap: gap-abs,
           page-width: size.width,
-          config: config,
+          config: cfg,
         ))
       })
     })
@@ -211,46 +202,46 @@
       let col-widths = info.col-widths
       let result = []
       let i = 0
-      
+
       let num-segments = info.config.layout.columns
 
       while i < cols.len() {
         if i > 0 {
           result += colbreak()
         }
-        
+
         let rows = ()
         let segment = 0
         while segment < num-segments {
           if i >= cols.len() { break }
-          
+
           let segment-cols = ()
           let current-w = 0pt
-          
+
           while i < cols.len() {
             let w = col-widths.at(i)
             let add-w = if segment-cols.len() == 0 { w } else { w + info.gap }
-            
+
             if current-w > 0pt and current-w + add-w > info.page-width {
               break
             }
-            
+
             segment-cols.push(cols.at(i))
             current-w += add-w
             i += 1
           }
-          
+
           if segment-cols.len() > 0 {
             rows.push(render-page(segment-cols, info.config.font, info.config.layout.gap, info.config))
           }
           segment += 1
         }
-        
+
         if rows.len() > 0 {
           result += stack(
             dir: ttb,
             spacing: info.config.layout.column-gap,
-            ..rows
+            ..rows,
           )
         }
       }
