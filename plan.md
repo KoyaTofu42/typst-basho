@@ -78,12 +78,15 @@ basho/
 **Goal**: Consecutive Latin chars/numbers rotate 90° inline.
 
 **Implementation**:
-- `src/parser.typ`: `tokenize` now groups `regex("[A-Za-z0-9]+")` runs as `type: "tcy"`
+- `src/parser.typ`: 
+  - Iterates through clusters via `tokenize(input)`. 
+  - Accumulates consecutive ASCII Latin/digit characters (`regex("^[A-Za-z0-9]+$")`) into a buffer.
+  - Flushes the buffer as a single `(type: "tcy", text: buf)` token.
 - `src/renderer.typ`:
-  - `renderTCY(token)` — `rotate(90deg, reflow: true, text(token.text))` in `box(width: 1em)`
-  - `render-char-token` dispatches `"char"` → `char-box`, `"tcy"` → `renderTCY`
+  - `render-tcy(token, font)` — renders the TCY block using `rotate(90deg, reflow: true, text(token.text))` centered inside a `box(width: 1em)`.
+  - `render-char-token` dispatches `"char"` → `char-box`, `"tcy"` → `render-tcy`.
 
-**Edge cases**: Mixed CJK/TCY boundaries correct. Empty TCY group → skip.
+**Edge cases**: Mixed CJK/TCY boundaries are handled correctly via the buffer flush. Empty TCY group → skip.
 
 **Verify**: `"abc日本語123"` → "abc" and "123" rotated 90°, CJK upright.
 
@@ -96,12 +99,12 @@ basho/
 **Implementation**:
 - `src/layout.typ`:
   - `paginate(tokens, max-lines)` — partition into column slices
-  - `layout-tate(tokens)` — uses `layout(size => ...)` to obtain usable dimensions:
-    1. `size.height` → usable height (already excludes margins)
-    2. `max-lines = int(size.height / 1em)`
-    3. Paginate → column groups, render via `columns()`
-    4. If remaining content > 1 page worth, emit `pagebreak()`, recurse
-- `\n` becomes soft override: inserts 1em gap if room, forces break if not.
+  - `layout-tate(tokens)` — uses `place(context { layout(size => ...) })` to perform two-pass layout:
+    1. Pass 1: `measure()` the exact absolute height of every token.
+    2. Paginate tokens into column slices based on exact measured heights versus `size.height`, storing them in `state`.
+    3. Pass 2: reads the columns from `state` and maps them to `render-page`.
+    4. Multi-page handled via `pagebreak()`.
+  - Suppressed paragraph spacing via `#set par(spacing: 0pt)` and `#set block(spacing: 0pt)` within the markup block to prevent blank gaps at page boundaries.
 
 **Edge cases**: Token taller than page → overflow. Exact fill → no extra break. Long content → page break + continuation.
 
@@ -115,11 +118,11 @@ basho/
 
 **Implementation** (`src/kinsoku.typ`):
 - Character sets: `opening`, `closing`, `hanging` (regex patterns)
-- `apply-kinsoku(column-tokens, next-token, max-lines)`:
-  1. Trim to max-lines; if last token in `opening` → move to next column
-  2. If first token of remainder in `hanging` → append to current as hanging punctuation
-  3. Hanging rendered via `box(width: 0pt)` + `outset` into gutter
-- Guard: never leave a column empty after moving.
+- `apply-kinsoku(columns)`:
+  1. If column ends with an opening bracket → move to next column.
+  2. If next column starts with a closing/period char → append to current as hanging punctuation.
+  3. Hanging rendered via `box(height: 0pt)` to visually overflow into the gutter without affecting column length.
+- `src/renderer.typ`: Opening brackets are aligned right, closing brackets are aligned left within their 1em bounds.
 
 **Verify**: `（` at col-bottom → moves to next. `。` at col-top → hangs on prev.
 
@@ -129,16 +132,17 @@ basho/
 
 **Goal**: Phonetic readings at 0.5em beside base char.
 
-**Implementation** (`src/ruby.typ`):
+**Implementation** (`src/ruby.typ` & `src/char-box.typ`):
+- Extracted `char-box` to `src/char-box.typ` to avoid cyclic import dependencies.
 - `render-ruby(token)`:
-  - Base via `char-box`
-  - Ruby text: each ruby char at `text(size: 0.5em)`, stacked `ttb`, rotated 90°
-  - `grid(columns: (1em, 0.5em), base, ruby-stack)`
-- `columns()` auto-detects max column width from rendered content
+  - Supports Group Ruby (Jukugo ruby) by accepting multiple base characters.
+  - Dynamically calculates the overall block height using `calc.max(base-height, ruby-height)` to prevent long mono ruby from overlapping into adjacent kanji.
+  - Vertically centers both the stacked base characters and stacked ruby characters within the expanded bounds.
+  - Ruby text flows into the right-side gutter (`dx: 1em`) so the 1em column pitch is preserved flawlessly.
 
-**Edge cases**: Multi-char ruby → stacked. Ruby on TCY → skip. Empty ruby → render base only.
+**Edge cases**: Grouped ruby prevents overlap natively. Long mono ruby expands vertically. Empty ruby → renders base only.
 
-**Verify**: `学` rendered with `ガク` in 0.5em on right.
+**Verify**: `今日` rendered with grouped `きょう`, `漢` rendered with `かんじ` centered without overlapping adjacent text.
 
 ---
 
