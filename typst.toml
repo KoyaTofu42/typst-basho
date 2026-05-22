@@ -3,5 +3,5 @@ name = "basho"
 version = "0.1.0"
 entrypoint = "lib.typ"
 authors = ["koya-tofu"]
-description = "Vertical Japanese typesetting (tategaki) for Typst"
+description = "Render Vertical Japanese typesetting (tategaki)"
 license = "MIT"

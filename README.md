@@ -4,14 +4,20 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 
 ## Usage
 
+### Minimal example
 ```typst
-#import "@preview/basho:0.1.0": tate, tcy, ruby, turn, vblock, hblock
+#import "@preview/basho:0.1.0": tate
 
-#set page(width: 10cm, height: 10cm)
-#show: tate.with(columns: 2)
+#set text(font: "Harano Aji Mincho")
+#set page(paper: "jp-business-card")
 
-春はあけぼの。やうやう白くなりゆく山ぎは、すこしあかりて、
-紫だちたる雲の細くたなびきたる。#tcy("2025")年。
+#show: tate
+
+閑さや
+
+　岩にしみ入る
+
+　　蝉の声
 ```
 
 ### Inline macros
