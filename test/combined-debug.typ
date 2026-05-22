@@ -5,7 +5,7 @@
 #set text(font: "Harano Aji Mincho")
 
 === Source: debug.typ — Config check
-#import "/src/config.typ": default-opts, merge-config
+#import "../src/config.typ": default-opts, merge-config
 #let cfg = merge-config(default-opts, (:))
 Config OK. Top-level keys: #repr(cfg.keys())
 
@@ -107,9 +107,9 @@ Config OK. Top-level keys: #repr(cfg.keys())
 #pagebreak()
 === Source: debug-layout.typ — Layout pagination debug
 #set page(width: 300pt, height: 200pt, margin: 10pt)
-#import "../src/flatten.typ": flatten
+#import "../src/pipeline/flatten.typ": flatten
 #import "../src/layout.typ": paginate
-#import "../src/kinsoku.typ": default-resolver
+#import "../src/core/kinsoku.typ": default-resolver
 #import "../src/config.typ": default-opts
 #let text-layout = [
   これは縦書きにおける段組み（水平分割）のテストです。西洋の横書きレイアウトでは、段組みはページを左右に分割しますが、日本の伝統的な縦書きでは、ページを上下に分割します。

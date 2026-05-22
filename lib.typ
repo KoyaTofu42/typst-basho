@@ -2,8 +2,8 @@
 // Public API for Basho — Vertical Japanese Typesetting
 
 #import "src/layout.typ": layout-tate
-#import "src/flatten.typ": flatten
-#import "src/renderer.typ": render-char-token
+#import "src/pipeline/flatten.typ": flatten
+#import "src/renderer/renderer.typ": render-char-token
 #import "src/config.typ": default-opts, merge-config
 
 

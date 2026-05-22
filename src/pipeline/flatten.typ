@@ -1,7 +1,7 @@
 // src/flatten.typ
 // Content tree traversal for Typst native markup
 
-#import "parser.typ": tokenize
+#import "../core/parser.typ": tokenize
 
 /// Flattens a native Typst content tree into an array of Basho tokens.
 /// This enables support for inline macros (like `#ruby`) and native styling (like `*bold*`).

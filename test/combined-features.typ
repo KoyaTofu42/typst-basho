@@ -334,7 +334,7 @@
 = Phase 10 Test: Custom Kinsoku Resolvers
 
 #import "../src/config.typ": default-opts, merge-config
-#import "../src/kinsoku.typ": default-resolver, is-forbidden-start
+#import "../src/core/kinsoku.typ": default-resolver, is-forbidden-start
 #let extreme-oidashi-resolve(col, token, h, config, cur-h, max-h) = {
   if is-forbidden-start(token, config.kinsoku.forbidden-start) {
     return (action: "push-previous")
@@ -543,7 +543,7 @@
 #show "…": set text(font: "Harano Aji Mincho")
 
 #import "../lib.typ": hblock, ruby, tate-inline, tcy, turn, vblock
-#import "../src/kinsoku.typ": default-resolver
+#import "../src/core/kinsoku.typ": default-resolver
 
 = Huge Example
 

@@ -1,7 +1,7 @@
 // src/layout.typ
 // Vertical layout with auto-pagination, RTL multi-column, and kinsoku shori
 
-#import "renderer.typ": render-char-token
+#import "renderer/renderer.typ": render-char-token
 
 /// Renders a single column of tokens as a top-to-bottom vertical stack.
 ///
@@ -24,7 +24,7 @@
   )
 }
 
-#import "kinsoku.typ": is-forbidden-start, is-valid-line-end, apply-spacing-compression
+#import "core/kinsoku.typ": is-forbidden-start, is-valid-line-end, apply-spacing-compression
 
 /// Splits a flat token array into column groups based on a maximum height
 /// (absolute length). Uses pre-measured token heights for accuracy,

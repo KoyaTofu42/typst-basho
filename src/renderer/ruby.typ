@@ -1,7 +1,7 @@
 // src/ruby.typ
 // Ruby (furigana) rendering
 
-#import "char-box.typ": char-box
+#import "../core/char-box.typ": char-box
 
 /// Renders a character with ruby (furigana) on the right side.
 /// The overall box is strictly 1em × 1em, with the ruby text overflowing
@@ -19,13 +19,13 @@
   let base-stack = stack(
     dir: ttb,
     spacing: 0pt,
-    ..base-chars.map(ch => char-box(ch, font, config))
+    ..base-chars.map(ch => char-box(ch, font, config)),
   )
 
   if token.ruby == "" or token.ruby == none {
     return base-stack
   }
-  
+
   let ruby-chars = token.ruby.clusters()
   let ruby-len = ruby-chars.len()
   let ruby-height = ruby-len * config.sizing.ruby-size
@@ -38,16 +38,14 @@
       box(
         width: config.sizing.ruby-size,
         height: config.sizing.ruby-size,
-        align(center + horizon,
-          text(
-            size: config.sizing.ruby-size,
-            ..(if font != none { (font: font) } else { (:) }),
-            features: config.features,
-            ch
-          )
-        )
+        align(center + horizon, text(
+          size: config.sizing.ruby-size,
+          ..(if font != none { (font: font) } else { (:) }),
+          features: config.features,
+          ch,
+        )),
       )
-    })
+    }),
   )
 
   // Calculate the required height to fit whichever is taller (base or ruby)
@@ -63,6 +61,6 @@
     {
       place(left + horizon, base-stack)
       place(left + horizon, dx: config.sizing.ruby-offset, ruby-stack)
-    }
+    },
   )
 }
