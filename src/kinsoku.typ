@@ -129,8 +129,13 @@
 
   // Priority 1–3: Forbidden-start (Gyoto Kinsoku)
   if is-forbidden-start(token, k.forbidden-start) {
+    let next-token = k.at("next-token", default: none)
+
     // Priority 1: Burasagari — hanging punctuation
     if is-hanging(token, k.hanging) and k.mode == "burasagari" {
+      if is-forbidden-start(next-token, k.forbidden-start) {
+        return (action: "push-previous")
+      }
       return (action: "burasagari")
     }
 
@@ -139,6 +144,9 @@
     let overflow = (cur-h + h) - max-h
 
     if k.mode == "oikomi" and shrinkable >= overflow {
+      if is-forbidden-start(next-token, k.forbidden-start) {
+        return (action: "push-previous")
+      }
       return (action: "oikomi", compression-amount: overflow)
     }
 

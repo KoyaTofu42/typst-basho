@@ -65,6 +65,7 @@
     }
 
     if current-height > 0pt and current-height + h > max-height {
+      config.kinsoku.insert("next-token", if i + 1 < tokens.len() { tokens.at(i + 1) } else { none })
       let decision = (config.kinsoku.resolve)(current-col, token, h, config, current-height, max-height)
 
       if decision.action == "burasagari" {
