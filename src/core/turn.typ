@@ -6,10 +6,9 @@
 /// ideal for equations, figures, or complex nested content.
 ///
 /// - token (dictionary): A token with type "turn" and text field (content).
-/// - font (str): Font family name (ignored to preserve inner content styling).
 /// - config (dictionary): The layout configuration.
 /// -> content: Rotated content inside a container bounded horizontally by the column width.
-#let render-turn(token, font, config) = {
+#let render-turn(token, config) = {
   let heading-level = token.at("heading", default: none)
   let scales = config.sizing.heading-scales
   let font-scale = if heading-level == 1 { scales.at(0) } else if heading-level == 2 { scales.at(1) } else if (
@@ -18,7 +17,7 @@
 
   let is-str = type(token.text) == str
   let heading-str = heading-level != none and is-str
-  let f-opt = if font != none { (font: font) } else { (:) }
+  let f-opt = if config.font != none { (font: config.font) } else { (:) }
   let size-opt = if heading-level != none { (size: config.sizing.char-box * font-scale) } else { (:) }
   let weight-opt = if heading-level != none or token.at("bold", default: false) { (weight: "bold") } else { (:) }
   let style-opt = if token.at("italic", default: false) { (style: "italic") } else { (:) }

@@ -21,7 +21,7 @@
 ) = {
   (dash-scale: dash-scale,
     node-renderers: node-renderers,
-    transform: (tokens, module, config) => {
+    transform: (tokens) => {
       tokens.map(t => {
         if t.type == "char" and (t.text == "—" or t.text == "─") {
           t.text = "―"

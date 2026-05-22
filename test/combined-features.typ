@@ -162,7 +162,8 @@
 
 = Phase 6 Test: Ruby (Furigana)
 
-#import "../src/layout.typ": render-tokens
+#import "../lib.typ": layout-tate
+#import "../src/config.typ": default-opts, merge-config
 
 == Test 1: Standard ruby and long ruby
 #let test-tokens-1 = (
@@ -178,7 +179,7 @@
   (type: "ruby", text: "漢", ruby: "かん"),
   (type: "ruby", text: "字", ruby: "じ"),
 )
-#render-tokens(test-tokens-1, "Harano Aji Mincho")
+#layout-tate(test-tokens-1, merge-config(default-opts, (font: "Harano Aji Mincho")))
 
 #pagebreak()
 == Test 2: Combined features (TCY + Kinsoku + Group Ruby)
@@ -192,7 +193,7 @@
   (type: "ruby", text: "記憶", ruby: "キオク"),
   (type: "char", text: "。"),
 )
-#render-tokens(test-tokens-2, "Harano Aji Mincho")
+#layout-tate(test-tokens-2, merge-config(default-opts, (font: "Harano Aji Mincho")))
 
 #pagebreak()
 == Test 3: Empty ruby handling
@@ -208,7 +209,7 @@
   (type: "char", text: "晴"),
   (type: "char", text: "天"),
 )
-#render-tokens(test-tokens-3, "Harano Aji Mincho")
+#layout-tate(test-tokens-3, merge-config(default-opts, (font: "Harano Aji Mincho")))
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Phase 7: Content Flattener & API Finalization
@@ -241,7 +242,7 @@
 = Phase 8 Test: Dangumi & Kinsoku
 
 == Test 1: Basic 2-column Dangumi
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   これは縦書きにおける段組み（水平分割）のテストです。西洋の横書きレイアウトでは、段組みはページを左右に分割しますが、日本の伝統的な縦書きでは、ページを上下に分割します。
 
   このテキストは、まず上段を右から左に向かって埋めていきます。そして上段がいっぱいになると、自動的に下段の右端へとシームレスに移動して配置されます。これにより、文庫本や新聞のような、美しい二段組み（あるいは三段組み）のレイアウトをTypst上でネイティブに実現することができます。
@@ -249,7 +250,7 @@
 
 #pagebreak()
 == Test 2: Kinsoku — Closing brackets and small kana
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   「禁則処理」とは、日本語組版における行末・行頭の処理規則である。例えば、閉じ括弧（」や）など）は行頭に来てはならない。また、拗音（しゃ・しゅ・しょ）や促音（あっ）のような小書き仮名も行頭禁則の対象である。
 
   長音符号ー（カタカナ語：コンピューター、サーバー、プレーヤー）も同様に、行頭に配置されることを禁じる。句読点「、」「。」はぶら下がり処理の対象であり、行末からはみ出して表示される。
@@ -257,7 +258,7 @@
 
 #pagebreak()
 == Test 3: Opening brackets (gyōmatsu kinsoku)
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   開き括弧の禁則処理をテストする。行末に「が来た場合、次の行へ送り出される。括弧の種類：「二重鉤括弧」『二重括弧』【隅付き括弧】（丸括弧）〈山括弧〉《二重山括弧》である。
 
   入れ子も正しく動く。例えば「彼は『これは（重要な）問題だ』と言った」という文は、すべての括弧が正しく対応する。
@@ -265,7 +266,7 @@
 
 #pagebreak()
 == Test 4: Bold, italic, and ruby with dangumi
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   *太字*と_斜体_を含む縦書きの段組みテスト。#ruby("漢字", "かんじ")の#ruby("振仮名", "ふりがな")も正しく表示されなければならない。
 
   #ruby("吾輩", "わがはい")は猫である。名前はまだ無い。どこで生れたかとんと#ruby("見当", "けんとう")がつかぬ。何でも薄暗いじめじめした所でニャーニャー泣いていた#ruby("事", "こと")だけは記憶している。
@@ -273,7 +274,7 @@
 
 #pagebreak()
 == Test 5: TCY (numbers & latin) with kinsoku
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   令和7年5月21日、東京都渋谷区にて第42回「日本語組版」シンポジウムが開催された。参加者は約350名。午前10時30分に開会し、基調講演のテーマは「21世紀のDTPと縦書き」であった。
 
   なお、会場の最寄り駅はJR渋谷駅（ハチ公口より徒歩5分）である。入場料は1500円。詳しくはURLを参照されたい。
@@ -281,7 +282,7 @@
 
 #pagebreak()
 == Test 6: Mixed stress test — all features combined
-#tate(columns: 2, column-gap: 10pt)[
+#tate(config: (layout: (columns: 2, column-gap: 10pt)))[
   *第一章*　#ruby("邂逅", "かいこう")
 
   #ruby("春", "はる")の#ruby("嵐", "あらし")が#ruby("街", "まち")を駆け#ruby("抜", "ぬ")けた3月15日------#ruby("彼女", "かのじょ")は「#ruby("不思議", "ふしぎ")の#ruby("国", "くに")のアリス」を#ruby("片手", "かたて")に、カフェ・ド・フローラの#ruby("隅", "すみ")っこに#ruby("座", "すわ")っていた。
@@ -318,7 +319,7 @@
 = Phase 9 Test: Kinsoku line breaking
 
 #tate(
-  columns: 1,
+  config: (layout: (columns: 2)),
   [
     １２３４５６７８——
     あいうえおかきく……
@@ -393,7 +394,7 @@
 
 #import "../lib.typ": vblock
 
-#tate(columns: 2)[
+#tate(config: (layout: (columns: 2)))[
   以下の連立方程式を解いてください。
   $
       2x + y & = 5 \
@@ -547,7 +548,7 @@
 
 = Huge Example
 
-#tate(columns: 2)[
+#tate(config: (layout: (columns: 2)))[
   = The Basho Package Example
   = 見出しテスト
 
@@ -624,10 +625,7 @@ The next two blocks use the same content with different line-breaking presets so
 
 #v(1em)
 
-#tate(
-  columns: 2,
-  column-gap: 10pt,
-  config: (
+#tate(config: (
     kinsoku: default-resolver(mode: "burasagari"),
     layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
   ),
@@ -641,10 +639,7 @@ The next two blocks use the same content with different line-breaking presets so
 
 #pagebreak()
 
-#tate(
-  columns: 2,
-  column-gap: 10pt,
-  config: (
+#tate(config: (
     kinsoku: default-resolver(mode: "oikomi"),
     layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
   ),
@@ -665,11 +660,8 @@ As a final test, the next page has a series of edge cases for kinsoku processing
 
 #v(1em)
 
-#tate(
-  font: "Harano Aji Mincho",
-  columns: 3,
-  column-gap: 8pt,
-  config: (
+#tate(config: (
+    font: "Harano Aji Mincho",
     sizing: (
       char-box: 1em,
       ruby-size: 0.45em,

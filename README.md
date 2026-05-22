@@ -37,7 +37,7 @@ An extended example with various features is available in `example/japanese-vert
 
 ### Inline rendering
 
-`#tate-inline(body, font, config)` renders content as a vertical stack without pagination — useful inside `#hblock[...]` or other upright contexts.
+`#tate-inline(body, config)` renders content as a vertical stack without pagination — useful inside `#hblock[...]` or other upright contexts.
 
 ---
 
@@ -97,7 +97,7 @@ Consecutive Latin/digit runs are automatically grouped into TCY tokens.
 
 #### Layer 2 — Rendering transforms (`cfg.rendering[].transform`)
 
-Each module in `config.rendering` can export a `transform(tokens, module, config) => tokens` function. These are applied in order:
+Each module in `config.rendering` can export a `transform(tokens) => tokens` function. These are applied in order:
 
 | Module | Purpose |
 |---|---|
@@ -111,7 +111,7 @@ Each module in `config.rendering` can export a `transform(tokens, module, config
 
 #### Layer 3 — TCY filtering (`cfg.tcy[].filter`)
 
-Each TCY module exports a `filter(tokens, module, config) => tokens` function. The default module classifies auto-detected TCY runs into:
+Each TCY module exports a `filter(tokens, config) => tokens` function. The default module classifies auto-detected TCY runs into:
 - **"horizontal"** — kept as TCY (e.g. short numbers like `42`)
 - **"rotated"** — converted to `turn` tokens (e.g. `ABC`)
 - **"char"** — split into individual upright `char` tokens

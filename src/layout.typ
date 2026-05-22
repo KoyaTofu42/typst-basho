@@ -6,16 +6,14 @@
 /// Renders a single column of tokens as a top-to-bottom vertical stack.
 ///
 /// - tokens (array): Array of token dictionaries for this column.
-/// - font (str): Font family name.
 /// - config (dictionary): Layout configuration.
 /// -> content: A vertical stack of rendered character boxes.
-#let render-column(tokens, font, config) = {
+#let render-column(tokens, config) = {
   if tokens.len() == 0 {
-    // Empty column gets a minimum-height placeholder to preserve spacing
     return box(width: config.sizing.char-box, height: config.sizing.char-box)
   }
 
-  let rendered = tokens.map(token => render-char-token(token, font, config))
+  let rendered = tokens.map(token => render-char-token(token, config))
 
   stack(
     dir: ttb,
@@ -152,16 +150,14 @@
 /// Renders a single page worth of columns arranged RTL.
 ///
 /// - cols (array): Array of column token arrays for this page.
-/// - font (str): Font family name.
 /// - gap (length): Horizontal gap between columns.
 /// - config (dictionary): The layout configuration.
 /// -> content: RTL-arranged vertical columns.
-#let render-page(cols, font, gap, config) = {
-  // Check layout hooks — last one wins
+#let render-page(cols, gap, config) = {
   if config.layout.hooks.len() > 0 {
-    return config.layout.hooks.last()(cols, font, gap, config)
+    return config.layout.hooks.last()(cols, config.font, gap, config)
   }
-  let rendered = cols.map(col => render-column(col, font, config))
+  let rendered = cols.map(col => render-column(col, config))
   align(right + top, stack(
     dir: rtl,
     spacing: gap,
@@ -193,7 +189,7 @@
         if token.type == "newline" or token.type == "heading-anchor" {
           0pt
         } else {
-          measure(render-char-token(token, config.font, config)).height
+          measure(render-char-token(token, config)).height
         }
       })
 
@@ -211,7 +207,7 @@
       cfg.insert("char-box-abs", char-box-abs)
 
       let cols = paginate(tokens, heights, usable-height, cfg)
-      let col-widths = cols.map(col => measure(render-column(col, cfg.font, cfg)).width)
+      let col-widths = cols.map(col => measure(render-column(col, cfg)).width)
 
       let result = []
       let i = 0
@@ -244,7 +240,7 @@
           }
 
           if segment-cols.len() > 0 {
-            rows.push(render-page(segment-cols, cfg.font, cfg.layout.gap, cfg))
+            rows.push(render-page(segment-cols, cfg.layout.gap, cfg))
           }
           segment += 1
         }
@@ -263,9 +259,4 @@
   ]
 }
 
-/// Convenience wrapper (backward compat).
-#import "config.typ": default-opts, merge-config
-#let render-tokens(tokens, font, gap: 1em, columns: 1, column-gap: 2em) = {
-  let cfg = merge-config(default-opts, (font: font, layout: (gap: gap, columns: columns, column-gap: column-gap)))
-  layout-tate(tokens, cfg)
-}
+

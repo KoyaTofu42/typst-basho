@@ -12,11 +12,10 @@
 /// Font size adapts to string length so text fits within the 1em column width.
 ///
 /// - token (dictionary): A token with type "tcy" and text field.
-/// - font (str): Font family name.
 /// - config (dictionary): The layout configuration.
 /// -> content: Horizontal text in a 1em × 1em box.
-#let render-tcy(token, font, config) = {
-  let f-opt = if font != none { (font: font) } else { (:) }
+#let render-tcy(token, config) = {
+  let f-opt = if config.font != none { (font: config.font) } else { (:) }
   let tcy-module = config.tcy.first()
   let sizes = tcy-module.sizes
 
@@ -42,11 +41,10 @@
 /// the column without affecting the column height.
 ///
 /// - token (dictionary): A token with type "hanging" and text field.
-/// - font (str): Font family name.
 /// - config (dictionary): The layout configuration.
 /// -> content: Zero-height box with the character.
-#let render-hanging(token, font, config) = {
-  let f-opt = if font != none { (font: font) } else { (:) }
+#let render-hanging(token, config) = {
+  let f-opt = if config.font != none { (font: config.font) } else { (:) }
   box(
     width: config.sizing.char-box,
     height: 0pt,
@@ -65,16 +63,14 @@
 /// Dispatches "char" → char-box, "tcy" → render-tcy, "hanging" → render-hanging, "ruby" → render-ruby.
 ///
 /// - token (dictionary): A token dictionary with at least a `type` and `text` field.
-/// - font (str): Font family name.
 /// - config (dictionary): The layout configuration.
 /// -> content: Rendered content for the token.
-#let render-char-token(token, font, config) = {
-  let f-opt = if font != none { (font: font) } else { (:) }
+#let render-char-token(token, config) = {
+  let f-opt = if config.font != none { (font: config.font) } else { (:) }
 
-  // Check injected node-renderers from all rendering modules
   for render-module in config.rendering {
     if "node-renderers" in render-module and token.type in render-module.node-renderers {
-      return (render-module.node-renderers.at(token.type))(token, font, config)
+      return (render-module.node-renderers.at(token.type))(token, config)
     }
   }
 
@@ -109,14 +105,14 @@
         )),
       )
     } else {
-      char-box(token.text, font, config, h-align: h-align, height: box-height)
+      char-box(token.text, config.font, config, h-align: h-align, height: box-height)
     }
   } else if token.type == "tcy" {
-    render-tcy(token, font, config)
+    render-tcy(token, config)
   } else if token.type == "hanging" {
-    render-hanging(token, font, config)
+    render-hanging(token, config)
   } else if token.type == "ruby" {
-    render-ruby(token, font, config)
+    render-ruby(token, config)
   } else if token.type == "heading-anchor" {
     box(
       width: 0pt,

@@ -19,9 +19,9 @@
   european-cjk-gap: 0.25em,
 ) = {
   (node-renderers: (
-      "spacing": (token, font, config) => box(width: config.sizing.char-box, height: token.width),
+      "spacing": (token, config) => box(width: config.sizing.char-box, height: token.width),
     ),
-    transform: (tokens, module, config) => {
+    transform: (tokens) => {
       let result = ()
       let prev = none
       for t in tokens {

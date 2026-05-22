@@ -25,7 +25,7 @@
 // ---------------------------------------------------------------------------
 // 1. Default — burasagari mode (no customization)
 // ---------------------------------------------------------------------------
-#tate(columns: 2)[
+#tate(config: (layout: (columns: 2)))[
   #test_text
 ]
 
@@ -35,8 +35,8 @@
 // 2. Custom hanging set — add ！ to hanging punctuation
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(hanging: "、。，．！"),
   ),
 )[
@@ -49,8 +49,8 @@
 // 3. Oikomi mode — compression instead of hanging
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(mode: "oikomi"),
   ),
 )[
@@ -63,8 +63,8 @@
 // 4. Oikomi with tighter compression
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(
       mode: "oikomi",
       compression-per-punct: 0.3,
@@ -81,8 +81,8 @@
 // 5. Custom forbidden-start — only push on ）、】
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(forbidden-start: "）〕】"),
   ),
 )[
@@ -95,8 +95,8 @@
 // 6. Extended unbreakable pairs — add 「」 to the set
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(unbreakable-chars: "—―…‥「」"),
   ),
 )[
@@ -109,8 +109,8 @@
 // 7. Custom compressible punctuation — only compress 、。
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(
       mode: "oikomi",
       compressible-punctuation: "、。",
@@ -139,8 +139,8 @@
 }
 
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(resolve-fn: custom-resolve-1),
   ),
 )[
@@ -157,8 +157,8 @@
 }
 
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: (resolve: always-break),
   ),
 )[
@@ -182,8 +182,8 @@
 }
 
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(resolve-fn: aggressive-push),
   ),
 )[
@@ -196,8 +196,8 @@
 // 11. Mixed — burasagari with custom sets + different compression params
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(
       mode: "burasagari",
       hanging: "、。，．！？",
@@ -215,8 +215,8 @@
 // 12. Oikomi with no consecutive compression bonus
 // ---------------------------------------------------------------------------
 #tate(
-  columns: 2,
   config: (
+    layout: (columns: 2),
     kinsoku: default-resolver(
       mode: "oikomi",
       consecutive-compression: 0,

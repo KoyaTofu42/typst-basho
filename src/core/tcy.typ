@@ -13,7 +13,7 @@
 ) = {
   (pattern: pattern,
     sizes: sizes,
-    filter: (tokens, module, config) => {
+    filter: (tokens, config) => {
       let new-tokens = ()
       let classify-fn = none
       if "categories" in config and "classify" in config.categories {

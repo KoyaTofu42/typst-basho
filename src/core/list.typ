@@ -19,8 +19,8 @@
       tokens
     },
     node-renderers: (
-      "bullet-list-marker": (token, font, config) => {
-        let f-opt = if font != none { (font: font) } else { (:) }
+      "bullet-list-marker": (token, config) => {
+        let f-opt = if config.font != none { (font: config.font) } else { (:) }
         let marker = config.list.bullet.marker
         box(
           width: config.sizing.char-box,

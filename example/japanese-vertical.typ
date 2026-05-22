@@ -6,7 +6,7 @@
 #show "…": set text(font: "Harano Aji Mincho")
 
 
-#tate(columns: 2, column-gap: 12pt)[
+#tate(config: (layout: (columns: 2, column-gap: 12pt)))[
   = Basho パッケージの縦書きデモ
   = 春の雪
   三島由紀夫の「春の雪」は、大正初期の華族社会を舞台にした美と運命の物語である。
@@ -81,7 +81,7 @@
 #show "…": set text(font: "Harano Aji Mincho")
 
 
-#tate(columns: 2, column-gap: 12pt)[
+#tate(config: (layout: (columns: 2, column-gap: 12pt)))[
   = Basho パッケージの縦書きデモ
   = 春の雪
   三島由紀夫の「春の雪」は、大正初期の華族社会を舞台にした美と運命の物語である。

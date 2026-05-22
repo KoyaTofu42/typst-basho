@@ -8,10 +8,9 @@
 /// into the gutter to the right. This ensures column pitch remains consistent.
 ///
 /// - token (dictionary): Token with type "ruby", `text` (base), and `ruby` (reading).
-/// - font (str): Font family name.
 /// - config (dictionary): The layout configuration.
 /// -> content: Rendered ruby box.
-#let render-ruby(token, font, config) = {
+#let render-ruby(token, config) = {
   let base-chars = token.text.clusters()
   let base-len = base-chars.len()
   let base-height = base-len * config.sizing.char-box
@@ -19,7 +18,7 @@
   let base-stack = stack(
     dir: ttb,
     spacing: 0pt,
-    ..base-chars.map(ch => char-box(ch, font, config)),
+    ..base-chars.map(ch => char-box(ch, config.font, config)),
   )
 
   if token.ruby == "" or token.ruby == none {
@@ -40,7 +39,7 @@
         height: config.sizing.ruby-size,
         align(center + horizon, text(
           size: config.sizing.ruby-size,
-          ..(if font != none { (font: font) } else { (:) }),
+          ..(if config.font != none { (font: config.font) } else { (:) }),
           features: config.features,
           ch,
         )),

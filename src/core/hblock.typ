@@ -1,5 +1,5 @@
 // src/hblock.typ
-#let render-hblock(token, font, config) = {
+#let render-hblock(token, config) = {
   box(
     height: config.at("usable-height", default: auto),
     align(center + horizon,
