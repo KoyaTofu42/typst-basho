@@ -194,8 +194,7 @@
       })
 
       let col-gap-abs = measure(v(config.layout.column-gap)).height
-      let y = here().position().y
-      let available-height = calc.max(0pt, size.height - y)
+      let available-height = size.height
       let usable-height = (available-height - (config.layout.columns - 1) * col-gap-abs) / config.layout.columns
 
       let gap-abs = measure(h(config.layout.gap)).width
