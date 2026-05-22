@@ -8,7 +8,7 @@
 /// - sizes (array): Font sizes for len <=2, ==3, >=4. Default: `(1em, 0.65em, 0.5em)`.
 /// -> dictionary: A TCY module dict with a `filter` function.
 #let default-tcy(
-  pattern: regex("^[A-Za-z0-9,]+$"),
+  pattern: regex("^[A-Za-z0-9,.!?:;]+$"),
   sizes: (1em, 0.65em, 0.5em),
 ) = {
   (pattern: pattern,

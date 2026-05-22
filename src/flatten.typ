@@ -48,6 +48,11 @@
       inner = inner.map(t => t + (heading: level))
       tokens += inner
       tokens.push((type: "newline", text: "\n"))
+    } else if fname == "link" {
+      let dest = c.dest
+      let inner = flatten(c.body, config)
+      inner = inner.map(t => t + (dest: dest))
+      tokens += inner
     } else if fname in ("strong", "emph", "underline", "strike", "overline", "highlight") {
       // Inline formatting elements
       let inner = flatten(c.body, config)

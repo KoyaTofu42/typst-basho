@@ -131,6 +131,7 @@
   if rendered != none and token.type != "turn" {
     if token.at("bold", default: false) { rendered = strong(rendered) }
     if token.at("italic", default: false) { rendered = emph(rendered) }
+    if "dest" in token { rendered = link(token.dest, rendered) }
   }
 
   rendered
