@@ -4,7 +4,7 @@
 #import "src/layout.typ": layout-tate
 #import "src/flatten.typ": flatten
 #import "src/renderer.typ": render-char-token
-#import "src/config.typ": default-opts, default-rendering, default-tcy, merge-config
+#import "src/config.typ": default-opts, merge-config
 
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).

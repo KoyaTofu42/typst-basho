@@ -2,98 +2,104 @@
 // Configuration state and merge engine for Basho DI architecture
 
 #import "kinsoku.typ": default-resolver
-
-// ---------------------------------------------------------------------------
-// Default TCY module — self-contained
-// ---------------------------------------------------------------------------
-
-/// Default TCY (tate-chu-yoko) processing module.
-/// Bundles the detection pattern, sizing, and filter logic together.
-#let default-tcy = (
-  pattern: regex("^[A-Za-z0-9,]+$"),
-  sizes: (1em, 0.65em, 0.5em), // for len <=2, ==3, >=4
-  /// Filters TCY tokens using config.categories.classify.
-  /// Explicit #tcy() calls (forced: true / "horizontal") stay as TCY.
-  /// Explicit #vert() calls (forced: "char") split into upright chars.
-  /// Auto-detected TCY runs are classified into:
-  ///   "horizontal" → keep as TCY (tate-chu-yoko)
-  ///   "rotated"    → convert to "turn" (rotated 90°)
-  ///   "char"       → split into individual upright char tokens
-  filter: (tokens, module, config) => {
-    let new-tokens = ()
-    let classify-fn = none
-    if "categories" in config and "classify" in config.categories {
-      classify-fn = config.categories.classify
-    }
-    for t in tokens {
-      if t.type == "tcy" {
-        let forced = t.at("forced", default: false)
-        if forced != false {
-          if forced == "char" {
-            if type(t.text) == str {
-              for ch in t.text.clusters() {
-                new-tokens.push(t + (type: "char", text: ch))
-              }
-            } else {
-              new-tokens.push(t + (type: "char", text: t.text))
-            }
-          } else {
-            new-tokens.push(t)
-          }
-        } else if classify-fn != none {
-          let cat = classify-fn(t.text, config)
-          if cat == "horizontal" {
-            new-tokens.push(t)
-          } else if cat == "rotated" {
-            new-tokens.push(t + (type: "turn", text: t.text))
-          } else {
-            // "char"
-            if type(t.text) == str {
-              for ch in t.text.clusters() {
-                new-tokens.push(t + (type: "char", text: ch))
-              }
-            } else {
-              new-tokens.push(t + (type: "char", text: t.text))
-            }
-          }
-        } else {
-          // Fallback: keep as TCY
-          new-tokens.push(t)
-        }
-      } else {
-        new-tokens.push(t)
-      }
-    }
-    new-tokens
-  },
-)
-
-// ---------------------------------------------------------------------------
-// Default rendering module — self-contained
-// ---------------------------------------------------------------------------
-
-/// Default rendering module.
-/// Bundles character normalization, dash scaling, and custom node renderers.
-#let default-rendering = (
-  dash-scale: 1.25em,
-  node-renderers: (:), // type-name -> (token, font, config) => content
-  /// Normalizes problematic characters.
-  /// U+2014 (EM DASH) and U+2500 (BOX DRAWING) → U+2015 (HORIZONTAL BAR).
-  transform: (tokens, module, config) => {
-    tokens.map(t => {
-      if t.type == "char" and (t.text == "—" or t.text == "─") {
-        t.text = "―"
-      }
-      t
-    })
-  },
-)
-
+#import "tcy.typ": default-tcy
 #import "spacing.typ": default-spacing
+
+// ---------------------------------------------------------------------------
+// Default rendering module factory — self-contained
+// ---------------------------------------------------------------------------
+
+/// Default rendering module factory.
+/// Bundles character normalization, dash scaling, and custom node renderers.
+///
+/// - dash-scale (length): Font size for horizontal-bar character. Default: 1.25em.
+/// - node-renderers (dictionary): Custom token-type renderers. Default: (:).
+/// -> dictionary: A rendering module dict with `dash-scale`, `node-renderers`, and `transform`.
+#let default-rendering-params(
+  dash-scale: 1.25em,
+  node-renderers: (:),
+) = {
+  (dash-scale: dash-scale,
+    node-renderers: node-renderers,
+    transform: (tokens, module, config) => {
+      tokens.map(t => {
+        if t.type == "char" and (t.text == "—" or t.text == "─") {
+          t.text = "―"
+        }
+        t
+      })
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Default sizing factory
+// ---------------------------------------------------------------------------
+
+/// Sizing parameters factory.
+///
+/// - char-box (length): Width/height of the character box. Default: 1em.
+/// - ruby-size (length): Font size for ruby text. Default: 0.5em.
+/// - ruby-offset (length): Horizontal offset for ruby text from the left edge. Default: 1em.
+/// - heading-scales (array): Font scale factors for h1, h2, h3. Default: (1.5, 1.3, 1.15).
+/// -> dictionary: A sizing dict.
+#let default-sizing-params(
+  char-box: 1em,
+  ruby-size: 0.5em,
+  ruby-offset: 1em,
+  heading-scales: (1.5, 1.3, 1.15),
+) = {
+  (char-box: char-box,
+    ruby-size: ruby-size,
+    ruby-offset: ruby-offset,
+    heading-scales: heading-scales)
+}
+
+// ---------------------------------------------------------------------------
+// Default categories factory
+// ---------------------------------------------------------------------------
+
+/// Categories parameters factory.
+/// Provides the TCY classification function used by the default TCY filter.
+///
+/// - classify (function): (text, config) => "horizontal" | "rotated" | "char".
+///   Default: 1-2 digit numbers → "horizontal", rest → "rotated".
+/// -> dictionary: A categories dict.
+#let default-categories(
+  classify: (text, config) => {
+    if text.match(regex("^[0-9]{1,2}$")) != none { return "horizontal" }
+    return "rotated"
+  },
+) = {
+  (classify: classify)
+}
+
+// ---------------------------------------------------------------------------
+// Default layout factory
+// ---------------------------------------------------------------------------
+
+/// Layout parameters factory.
+///
+/// - columns (int): Number of horizontal rows (段組み). Default: 1.
+/// - gap (length): Gap between columns within a row. Default: 1em.
+/// - column-gap (length): Gap between rows (vertical). Default: 2em.
+/// - hooks (array): Array of (cols, font, gap, config) => content; last wins. Default: ().
+/// -> dictionary: A layout config dict.
+#let default-layout-params(
+  columns: 1,
+  gap: 1em,
+  column-gap: 2em,
+  hooks: (),
+) = {
+  (columns: columns,
+    gap: gap,
+    column-gap: column-gap,
+    hooks: hooks)
+}
+
 #import "turn.typ": default-turn
 #import "vblock.typ": default-vblock
 #import "hblock.typ": default-hblock
-#import "list.typ": default-bullet-list, default-numbered-list
+#import "list.typ": default-bullet-list-params, default-numbered-list-params
 
 
 // ---------------------------------------------------------------------------
@@ -104,32 +110,15 @@
 #let default-opts = (
   font: none,
   features: ("vert", "vrt2"),
-  sizing: (
-    char-box: 1em,
-    ruby-size: 0.5em,
-    ruby-offset: 1em,
-    heading-scales: (1.5, 1.3, 1.15), // h1, h2, h3
-  ),
-  categories: (
-    /// Classifies an auto-detected TCY text run into a rendering category.
-    /// (text, config) => "horizontal" | "rotated" | "char"
-    classify: (text, config) => {
-      if text.match(regex("^[0-9]{1,2}$")) != none { return "horizontal" }
-      return "rotated"
-    },
-  ),
-  layout: (
-    columns: 1,
-    gap: 1em,
-    column-gap: 2em,
-    hooks: (), // array of (cols, font, gap, config) => content; last wins
-  ),
+  sizing: default-sizing-params(),
+  categories: default-categories(),
+  layout: default-layout-params(),
   kinsoku: default-resolver(),
-  tcy: (default-tcy,), // array of self-contained tcy modules
-  rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock), // array of self-contained rendering modules
+  tcy: (default-tcy(),),
+  rendering: (default-rendering-params(), default-spacing(), default-turn, default-vblock, default-hblock),
   list: (
-    bullet: default-bullet-list,
-    numbered: default-numbered-list + (gap: 0.25em),
+    bullet: default-bullet-list-params(),
+    numbered: default-numbered-list-params(),
   ),
 )
 
