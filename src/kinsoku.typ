@@ -1,182 +1,187 @@
 // src/kinsoku.typ
 // Japanese line-breaking rules (禁則処理)
 //
-// Each kinsoku module is a self-contained dictionary bundling:
-//   - Character sets (forbidden-start, forbidden-end, hanging, unbreakable-chars)
-//   - A `decide` callback: (col, token, rules) => (action: str, ...)
-//
-// The engine iterates over config.kinsoku (an array of modules).
-// For each overflow, it calls decide() on each module in order;
-// the first non-"break" result wins.
+// Exports:
+//   - default-resolver(..)  — factory that returns a resolver dict with
+//     all character sets + built-in resolve function
+//   - Standalone helpers for custom resolvers
 
 // ---------------------------------------------------------------------------
-// Helper functions — operate on a `rules` dictionary, NOT on config
+// Character-check helpers (reusable by custom resolvers)
 // ---------------------------------------------------------------------------
 
-/// Checks whether a token is in the opening set (must NOT end a column).
-#let is-opening(token, rules) = {
+/// Checks whether a token is a forbidden-start character (Gyoto / 行頭禁則).
+/// Such characters must NOT appear at the start of a column.
+#let is-forbidden-start(token, chars) = {
+  if token == none { return false }
   if token.type != "char" { return false }
-  rules.forbidden-end.contains(token.text)
+  chars.contains(token.text)
 }
 
-/// Checks whether a token is allowed to hang out of the column bottom.
-#let is-hanging(token, rules) = {
+/// Checks whether a token is a forbidden-end character (Gyomatsu / 行末禁則).
+/// Such characters must NOT appear at the end of a column.
+#let is-forbidden-end(token, chars) = {
+  if token == none { return false }
   if token.type != "char" { return false }
-  rules.hanging.contains(token.text)
+  chars.contains(token.text)
 }
 
-/// Checks whether a token is in the closing set (must NOT start a column).
-#let is-closing(token, rules) = {
+/// Checks whether a token is hanging-punctuation (burasagari / ぶら下がり).
+/// Such characters can visually overflow into the gutter.
+#let is-hanging(token, chars) = {
+  if token == none { return false }
   if token.type != "char" { return false }
-  rules.forbidden-start.contains(token.text)
+  chars.contains(token.text)
 }
 
-/// Checks whether two adjacent tokens form an unbreakable pair (e.g. …… or ——).
-#let is-unbreakable-pair(prev, current, rules) = {
+/// Checks whether two adjacent tokens form an unsplittable sequence
+/// (Buntetsu Kinsoku / 分割禁則), e.g. consecutive dashes or ellipses: —— ……
+#let is-unbreakable-pair(prev, current, chars) = {
+  if prev == none or current == none { return false }
   if prev.type != "char" or current.type != "char" { return false }
-  rules.unbreakable-chars.contains(prev.text) and prev.text == current.text
+  chars.contains(prev.text) and prev.text == current.text
+}
+
+/// Checks whether a token is eligible for spacing compression (Oikomi / 追い込み).
+/// Yakumono (約物 / punctuation) typically has 0.5em of compressible space.
+#let is-compressible-punctuation(token, chars) = {
+  if token == none { return false }
+  if token.type != "char" { return false }
+  chars.contains(token.text)
 }
 
 // ---------------------------------------------------------------------------
-// Default character sets shared by burasagari and oikomi
+// Computation helpers (reusable by custom resolvers)
 // ---------------------------------------------------------------------------
 
-#let _default-chars = (
+/// Calculates the total amount of shrinkable space in a column.
+/// Each compressible punctuation contributes compression-per-punct;
+/// consecutive pairs add an extra consecutive-compression.
+/// compression-per-punct and consecutive-compression are proportions
+/// of char-box-abs (e.g. 0.5 = half a char-box).
+#let calculate-shrinkable-space(col, config) = {
+  let k = config.kinsoku
+  let cb = config.char-box-abs
+  let per-punct = k.compression-per-punct * cb
+  let consec = k.consecutive-compression * cb
+  let total = 0pt
+  for i in range(col.len()) {
+    let current = col.at(i)
+    let next-tok = if i + 1 < col.len() { col.at(i + 1) } else { none }
+
+    if is-compressible-punctuation(current, k.compressible-punctuation) {
+      total += per-punct
+    }
+
+    if next-tok != none and is-compressible-punctuation(current, k.compressible-punctuation) and is-compressible-punctuation(next-tok, k.compressible-punctuation) {
+      total += consec
+    }
+  }
+  total
+}
+
+/// Distributes compression across compressible punctuation tokens in the column.
+/// Each token gets at most compression-per-punct removed from its height.
+/// Sets `compression` field on the token dict (consumed by the renderer).
+#let apply-spacing-compression(col, amount, config) = {
+  let k = config.kinsoku
+  let cb = config.char-box-abs
+  let max-per-punct = k.compression-per-punct * cb
+  let remaining = amount
+  for token in col {
+    if remaining <= 0pt { break }
+    if is-compressible-punctuation(token, k.compressible-punctuation) {
+      let reduction = calc.min(max-per-punct, remaining)
+      token.insert("compression", token.at("compression", default: 0pt) + reduction)
+      remaining -= reduction
+    }
+  }
+}
+
+/// Checks whether a token is valid at the end of a column.
+/// Returns false for null tokens and forbidden-end characters.
+#let is-valid-line-end(token, forbidden-end-chars) = {
+  if token == none { return false }
+  if token.type != "char" { return true }
+  not forbidden-end-chars.contains(token.text)
+}
+
+// ---------------------------------------------------------------------------
+// Built-in resolve function
+// Implements the priority-based resolution from the kinsoku spec:
+//   1. Unbreakable sequences     → push-previous
+//   2. Forbidden-start (Gyoto):
+//      a. Hanging (burasagari)   → burasagari
+//      b. Compressible (oikomi)  → oikomi(amount)
+//      c. Otherwise              → push-previous
+//   3. Forbidden-end (Gyomatsu)  → push-previous
+//   4. Default                   → oidashi
+// ---------------------------------------------------------------------------
+
+#let _builtin-resolve(col, token, h, config, cur-h, max-h) = {
+  let k = config.kinsoku
+  let last = if col.len() > 0 { col.last() } else { none }
+
+  // Priority 0: Unbreakable pairs (Buntetsu Kinsoku)
+  if is-unbreakable-pair(last, token, k.unbreakable-chars) {
+    return (action: "push-previous")
+  }
+
+  // Priority 1–3: Forbidden-start (Gyoto Kinsoku)
+  if is-forbidden-start(token, k.forbidden-start) {
+    // Priority 1: Burasagari — hanging punctuation
+    if is-hanging(token, k.hanging) and k.mode == "burasagari" {
+      return (action: "burasagari")
+    }
+
+    // Priority 2: Oikomi — spacing compression
+    let shrinkable = calculate-shrinkable-space(col, config)
+    let overflow = (cur-h + h) - max-h
+
+    if k.mode == "oikomi" and shrinkable >= overflow {
+      return (action: "oikomi", compression-amount: overflow)
+    }
+
+    // Priority 3: Oidashi cascading into push-previous
+    return (action: "push-previous")
+  }
+
+  // Check Gyomatsu Kinsoku (Forbidden End)
+  if is-forbidden-end(last, k.forbidden-end) {
+    return (action: "push-previous")
+  }
+
+  // Default: break normally
+  (action: "oidashi")
+}
+
+// ---------------------------------------------------------------------------
+// Default resolver factory
+// Returns a complete kinsoku configuration dictionary.
+// Users override any field by passing named arguments.
+// The `resolve` function is the built-in algorithm; set `resolve` to replace
+// it entirely while keeping helper access via imports.
+// ---------------------------------------------------------------------------
+
+#let default-resolver(
   forbidden-start: "）〕］｝〉》」』】)]}〞\u{201d}\u{2019}。、，．・：；ー～ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ！？",
   forbidden-end: "（〔［｛〈《「『【([{〝\u{201c}\u{2018}",
   hanging: "、。，．",
   unbreakable-chars: "—―…‥",
-)
-
-// ---------------------------------------------------------------------------
-// Built-in decide functions
-// ---------------------------------------------------------------------------
-
-/// Calculates the number of characters to push to the next line to avoid
-/// any kinsoku violations (cascading push-out).
-#let _calculate-push-out(col, token, rules) = {
-  let count = 0
-  let closing-run = 0
-  let current-first = token
-  let i = col.len() - 1
-
-  if is-closing(token, rules) {
-    count = 1
-    closing-run = 1
-  } else if col.len() > 0 and is-opening(col.last(), rules) {
-    count = 1
-  } else if col.len() > 0 and is-unbreakable-pair(col.last(), token, rules) {
-    count = 1
-  }
-
-  if count == 1 and i >= 0 {
-    current-first = col.at(i)
-    i -= 1
-  }
-
-  while count > 0 and i >= 0 {
-    let prev = col.at(i)
-    let needs-more = false
-
-    if is-closing(current-first, rules) {
-      needs-more = true
-      closing-run += 1
-    } else if is-unbreakable-pair(prev, current-first, rules) {
-      needs-more = true
-    } else if is-opening(prev, rules) {
-      needs-more = true
-    }
-
-    if needs-more {
-      count += 1
-      current-first = prev
-      i -= 1
-    } else {
-      break
-    }
-  }
-
-  if closing-run >= 2 and i >= 0 {
-    // Push one more char before consecutive forbidden-start characters.
-    count += 1
-  }
-
-  count
+  compressible-punctuation: "、。，．",
+  mode: "burasagari",
+  compression-per-punct: 0.5,
+  consecutive-compression: 0.25,
+  resolve-fn: none,
+) = {
+  let rfn = if resolve-fn != none { resolve-fn } else { _builtin-resolve }
+  (forbidden-start: forbidden-start,
+    forbidden-end: forbidden-end,
+    hanging: hanging,
+    unbreakable-chars: unbreakable-chars,
+    compressible-punctuation: compressible-punctuation,
+    mode: mode,
+    compression-per-punct: compression-per-punct,
+    consecutive-compression: consecutive-compression,
+    resolve: rfn)
 }
-
-/// Burasagari decision logic: hang punctuation, push out everything else.
-#let _burasagari-decide(col, token, rules) = {
-  if is-hanging(token, rules) {
-    return (action: "hang")
-  }
-  let push-count = _calculate-push-out(col, token, rules)
-  if push-count > 0 {
-    return (action: "push-out", count: push-count)
-  }
-  return (action: "break")
-}
-
-/// Oikomi decision logic: pull closing chars in instead of pushing out.
-#let _oikomi-decide(col, token, rules) = {
-  if is-hanging(token, rules) {
-    return (action: "hang")
-  }
-  if is-closing(token, rules) {
-    return (action: "pull-in")
-  }
-
-  // For Oikomi, we still calculate push-out for opening brackets or unbreakable pairs.
-  // We temporarily disable is-closing check for the INITIAL token since it would have
-  // been handled by pull-in above, but we still need the cascading logic.
-  let push-count = 0
-  let current-first = token
-  let i = col.len() - 1
-
-  if col.len() > 0 and is-opening(col.last(), rules) {
-    push-count = 1
-  } else if col.len() > 0 and is-unbreakable-pair(col.last(), token, rules) {
-    push-count = 1
-  }
-
-  if push-count == 1 and i >= 0 {
-    current-first = col.at(i)
-    i -= 1
-  }
-
-  while push-count > 0 and i >= 0 {
-    let prev = col.at(i)
-    let needs-more = false
-    if is-closing(current-first, rules) { needs-more = true } else if is-unbreakable-pair(prev, current-first, rules) {
-      needs-more = true
-    } else if is-opening(prev, rules) { needs-more = true }
-
-    if needs-more {
-      push-count += 1
-      current-first = prev
-      i -= 1
-    } else {
-      break
-    }
-  }
-
-  if push-count > 0 {
-    return (action: "push-out", count: push-count)
-  }
-  return (action: "break")
-}
-
-// ---------------------------------------------------------------------------
-// Self-contained kinsoku modules
-// ---------------------------------------------------------------------------
-
-/// Standard Japanese line-breaking (ぶら下がり / Burasagari).
-/// Hangs punctuation; pushes out closing brackets and unbreakable pairs.
-///
-/// This is a complete, self-contained dictionary:
-///   - Character sets: forbidden-start, forbidden-end, hanging, unbreakable-chars
-///   - decide: (col, token, rules) => (action: str, ...)
-#let burasagari = _default-chars + (decide: _burasagari-decide)
-
-/// Oikomi (追い込み) line-breaking.
-/// Squeezes closing characters into the current column instead of pushing out.
-#let oikomi = _default-chars + (decide: _oikomi-decide)

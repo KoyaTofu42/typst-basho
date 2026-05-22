@@ -24,9 +24,11 @@
   )
 }
 
+#import "kinsoku.typ": is-forbidden-start, is-valid-line-end, apply-spacing-compression
+
 /// Splits a flat token array into column groups based on a maximum height
 /// (absolute length). Uses pre-measured token heights for accuracy,
-/// and consults config.kinsoku module array for line-breaking decisions.
+/// and consults config.kinsoku.resolve for line-breaking decisions.
 ///
 /// - tokens (array): Array of token dictionaries.
 /// - heights (array): Parallel array of absolute heights per token.
@@ -61,102 +63,73 @@
       i += 1
       continue
     }
+
     if current-height > 0pt and current-height + h > max-height {
-      // Column is full — consult kinsoku modules in order.
-      // First non-"break" result wins.
-      let decision = (action: "break")
-      for rules in config.kinsoku {
-        let d = (rules.decide)(current-col, token, rules)
-        if d.action != "break" {
-          decision = d
-          break
-        }
-      }
+      let decision = (config.kinsoku.resolve)(current-col, token, h, config, current-height, max-height)
 
-      if decision.action == "hang" or decision.action == "pull-in" {
-        let should-forward = false
-        if decision.action == "hang" and i + 1 < tokens.len() {
-          let next-token = tokens.at(i + 1)
-          if next-token.type == "char" {
-            for rules in config.kinsoku {
-              if rules.forbidden-start.contains(next-token.text) {
-                should-forward = true
-                break
-              }
-            }
-          }
-        }
-
-        if should-forward and current-col.len() > 0 {
-          let popped = current-col.pop()
-          columns.push(current-col)
-          current-col = (popped, token)
-          current-height = heights.slice(i - 1, i + 1).sum()
-          i += 1
-          continue
-        }
-
+      if decision.action == "burasagari" {
         let hanging-token = token
         hanging-token.type = "hanging"
         current-col.push(hanging-token)
-        i += 1
-
-        // Consume consecutive hang/pull-in tokens at the same overflow boundary.
-        while i < tokens.len() {
-          let next-token = tokens.at(i)
-          let next-height = heights.at(i)
-
-          if next-token.type == "newline" or next-token.type == "vblock" or next-token.type == "hblock" {
-            break
-          }
-
-          if current-height > 0pt and current-height + next-height > max-height {
-            let next-decision = (action: "break")
-            for rules in config.kinsoku {
-              let d = (rules.decide)(current-col, next-token, rules)
-              if d.action != "break" {
-                next-decision = d
-                break
-              }
-            }
-
-            if next-decision.action == "hang" or next-decision.action == "pull-in" {
-              let extra = next-token
-              extra.type = "hanging"
-              current-col.push(extra)
-              i += 1
-              continue
-            }
-          }
-
-          break
-        }
-
         columns.push(current-col)
         current-col = ()
         current-height = 0pt
-        continue
-      } else if decision.action == "push-out" {
-        let count = decision.count
-        if current-col.len() >= count {
-          let popped = ()
-          while count > 0 {
-            popped.insert(0, current-col.pop())
-            count -= 1
-          }
-          columns.push(current-col)
-          current-col = popped + (token,)
-          current-height = heights.slice(i - decision.count, i + 1).sum()
-        } else {
-          columns.push(current-col)
-          current-col = (token,)
-          current-height = h
-        }
         i += 1
         continue
       }
 
-      // Normal break (all modules returned "break")
+      if decision.action == "oikomi" {
+        apply-spacing-compression(current-col, decision.compression-amount, config)
+        current-col.push(token)
+        columns.push(current-col)
+        current-col = ()
+        current-height = 0pt
+        i += 1
+        continue
+      }
+
+      if decision.action == "push-previous" {
+        let popped = ()
+        let popped-height = 0pt
+        let popped-start = i - current-col.len()
+        while current-col.len() > 0 {
+          let p = current-col.pop()
+          let ph = heights.at(popped-start + current-col.len())
+          popped.insert(0, p)
+          popped-height += ph
+
+          let new-last = if current-col.len() > 0 { current-col.last() } else { none }
+          if is-valid-line-end(new-last, config.kinsoku.forbidden-end) {
+            // If the overflow token is forbidden-start and the new column
+            // would start with one too, cascade further to prevent a
+            // column-start kinsoku violation.
+            let tok-start = is-forbidden-start(token, config.kinsoku.forbidden-start)
+            let pop-start = popped.len() > 0 and is-forbidden-start(popped.first(), config.kinsoku.forbidden-start)
+            let needs-more = tok-start and pop-start
+            if needs-more {
+              // Continue popping
+            } else {
+              break
+            }
+          }
+        }
+
+        let exhausted = current-col.len() == 0
+        columns.push(current-col)
+        if exhausted {
+          // All tokens were popped but the violation persists.
+          // Force oidashi to prevent infinite loop.
+          current-col = (token,)
+          current-height = h
+          i += 1
+        } else {
+          current-col = popped
+          current-height = popped-height
+        }
+        continue
+      }
+
+      // oidashi — break normally before the current token
       columns.push(current-col)
       current-col = (token,)
       current-height = h
@@ -232,6 +205,9 @@
 
       let cfg = config
       cfg.insert("usable-height", usable-height)
+      // Resolve char-box to absolute for kinsoku compression calculations
+      let char-box-abs = measure(box(width: config.sizing.char-box, height: config.sizing.char-box)).height
+      cfg.insert("char-box-abs", char-box-abs)
 
       let cols = paginate(tokens, heights, usable-height, cfg)
       let col-widths = cols.map(col => measure(render-column(col, cfg.font, cfg)).width)

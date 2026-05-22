@@ -1,4 +1,5 @@
-#import "../lib.typ": burasagari, hblock, oikomi, ruby, tate, tate-inline, tcy, turn, vblock
+#import "../lib.typ": hblock, ruby, tate, tate-inline, tcy, turn, vblock
+#import "../src/kinsoku.typ": default-resolver
 
 #set page(width: 320pt, height: 460pt, margin: 12pt)
 #set text(font: ("Times New Roman", "Harano Aji Mincho"), size: 11pt)
@@ -16,7 +17,7 @@
 
   この段落では、*太字 Bold*、_Italic_、#underline[下線]、#strike[取消線]、#overline[上線]、#highlight[強調] をまとめて確認する。
 
-  また、#tcy("IT")と#tcy("ABCDE")のような短い英数字列も混在させ、三文字以上の縦中横が分割される経路も見ておく。
+  また、#tcy("IT")と#tcy("ABC")のような短い英数字列も混在させ、三文字以上の縦中横が分割される経路も見ておく。
 
   内側の式も確認する。行内は $x + y = z$、独立したブロック式は $sum_(k=1)^n k = n(n+1)/2$。
 
@@ -65,7 +66,6 @@
   #ruby("縦書き", "たてがき")と#ruby("禁則処理", "きんそくしょり")をもう一度確認する。#strong[太字]と#emph[斜体]も同時に並べる。
 
   === 複合サンプル
-
   ここには、見出し、本文、英数字、記号、そして複数の Typst関数が一気に入る。
 
   - 箇条書き一
@@ -78,14 +78,6 @@
     + 番号付き項目
   ]
 
-  #table(
-    columns: 3,
-    align: center,
-    [項目], [値], [備考],
-    [TCY], [#tcy("88")], [短い数字列],
-    [Ruby], [#ruby("漢字", "かんじ")], [ルビ付き],
-  )
-
   #lorem(60)
 ]
 
@@ -95,17 +87,19 @@
 
 The next two blocks use the same content with different line-breaking presets so the output can be compared visually.
 
+#v(1em)
+
 #tate(
   columns: 2,
   column-gap: 10pt,
   config: (
-    kinsoku: (burasagari,),
+    kinsoku: default-resolver(mode: "burasagari"),
     layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
   ),
 )[
   = 禁則モード
   == Burasagari
-  これはぶら下がりの確認用の長文です。行末に来た「かぎかっこ」や（丸括弧）や、句読点、そして⋮⋮のような連続記号が、列の端でどのように処理されるかを確認するために、あえて長く続けています。さらに、英数字の2026とPDFを混ぜて、縦組みの中での表示差も見ます。
+  これはぶら下がりの確認用の長文です。行末に来た「かぎかっこ」や（丸括弧）や、句読点、そして......のような連続記号が、列の端でどのように処理されるかを確認するために、あえて長く続けています。さらに、英数字の2026とPDFを混ぜて、縦組みの中での表示差も見ます。
 
   もう一段長く続けます。日本語の縦書きでは、列の高さが足りなくなったときに、禁則に応じて一文字押し出されたり、ぶら下がったりします。その挙動を観察するために、ここでは括弧、句読点、長音符、そして複数の句を連ねて、あえて折り返し位置を作っています。
 ]
@@ -116,19 +110,23 @@ The next two blocks use the same content with different line-breaking presets so
   columns: 2,
   column-gap: 10pt,
   config: (
-    kinsoku: (oikomi,),
+    kinsoku: default-resolver(mode: "oikomi"),
     layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
   ),
 )[
   == Oikomi
   これは追い込みの確認用の長文です。行末に来た「かぎかっこ」や（丸括弧）や、句読点、そして……のような連続記号が、ぶら下がりではなく追い込み寄りに処理されるかを見ます。#ruby("追い込み", "おいこみ")の見え方も合わせて確認します。
 
-  さらに、#hblock[#box(stroke: 0.5pt + gray, inset: 4pt)[横置きの注釈]] と #vblock[$integral_0^1 x^2 dif x$] を混ぜ、ブロック系のトークンが縦組みレイアウトでどう収まるかも確認します。
+  さらに、#hblock[#box(stroke: 0.5pt + gray, inset: 4pt)[横置きの注釈]] と数式#vblock[$integral_0^1 x^2 dif x$]を混ぜ、ブロック系のトークンが縦組みレイアウトでどう収まるかも確認します。
 
   ここでも長文を続けます。#tcy("2024")、#tcy("IT")、#tcy("12345")、#turn[GitHub, VS Code]のような短いラベルを連続させ、縦中横の長さ分岐と回転表示の両方を走らせます。
 ]
 
-== Final Stress
+= Final Stress
+
+As a final test, the next page has a series of edge cases for kinsoku processing, where the break decision should cascade and push multiple characters to the next line.
+
+#v(1em)
 
 #tate(
   font: "Harano Aji Mincho",
@@ -150,5 +148,5 @@ The next two blocks use the same content with different line-breaking presets so
   行の中には、ひらがな、カタカナ、漢字、アルファベット、数字、記号、句読点、括弧、そして長い文章を詰め込む。これで、文字種ごとのレンダリングと列送りの両方を広く試せる。
 
   == 終わりに
-  Bashoの public APIは少ないが、Typst側の組み合わせは多い。#lorem(40)
+  Bashoの public APIは少ないが、Typst側の組み合わせは多い。
 ]

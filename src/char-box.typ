@@ -15,7 +15,7 @@
 /// - config (dictionary): The layout configuration.
 /// - h-align (alignment): Horizontal alignment override.
 /// -> content: A box containing the vertically-oriented character.
-#let char-box(body, font, config, h-align: center) = {
+#let char-box(body, font, config, h-align: center, height: none) = {
   let render-module = config.rendering.first()
   let f-opt = if font != none { (font: font) } else { (:) }
   let inner = if body == "―" {
@@ -33,9 +33,11 @@
     )
   }
 
+  let box-height = if height != none { height } else { config.sizing.char-box }
   box(
     width: config.sizing.char-box,
-    height: config.sizing.char-box,
+    height: box-height,
+    clip: false,
     align(h-align + horizon, inner)
   )
 }

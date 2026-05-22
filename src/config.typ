@@ -1,7 +1,7 @@
 // src/config.typ
 // Configuration state and merge engine for Basho DI architecture
 
-#import "kinsoku.typ": burasagari
+#import "kinsoku.typ": default-resolver
 
 // ---------------------------------------------------------------------------
 // Default TCY module — self-contained
@@ -124,7 +124,7 @@
     column-gap: 2em,
     hooks: (), // array of (cols, font, gap, config) => content; last wins
   ),
-  kinsoku: (burasagari,), // array of self-contained rule modules
+  kinsoku: default-resolver(),
   tcy: (default-tcy,), // array of self-contained tcy modules
   rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock), // array of self-contained rendering modules
   list: (

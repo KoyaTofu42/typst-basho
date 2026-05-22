@@ -1,28 +1,25 @@
 // test/phase10.typ
-// Phase 10 verification: Self-Contained Kinsoku Modules
+// Phase 10 verification: custom kinsoku resolvers via DI
 
 #import "../lib.typ": tate
 #import "../src/config.typ": default-opts, merge-config
+#import "../src/kinsoku.typ": default-resolver, is-forbidden-start
 
-// Define a completely custom kinsoku module — self-contained dict.
-// It carries its own character sets AND its own decide function.
-// This one pushes out TWO characters when hitting a closing bracket.
-#let extreme-oidashi = (
-  forbidden-start: "）〕］｝〉》」』】)]}。、！？",
-  forbidden-end: "（〔［｛〈《「『【([{",
-  hanging: "、。，．",
-  unbreakable-chars: "—―…‥",
+// Define a custom resolver that pushes out 2 characters when hitting
+// a forbidden-start character.
+#let extreme-oidashi-resolve(col, token, h, config, cur-h, max-h) = {
+  if is-forbidden-start(token, config.kinsoku.forbidden-start) {
+    return (action: "push-previous")
+  }
+  (action: "oidashi")
+}
 
-  decide: (col, token, rules) => {
-    if token.type == "char" and rules.forbidden-start.contains(token.text) {
-      return (action: "push-out", count: 2)  // Push out 2 chars!
-    }
-    return (action: "break")
-  },
-)
+// Build a complete kinsoku config using default-resolver but with
+// a custom resolve function.
+#let extreme-oidashi = default-resolver(resolve-fn: extreme-oidashi-resolve)
 
 #let my-config = merge-config(default-opts, (
-  kinsoku: (extreme-oidashi,),  // Inject our custom module!
+  kinsoku: extreme-oidashi,
   layout: (columns: 2),
 ))
 

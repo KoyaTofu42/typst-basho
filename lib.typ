@@ -5,7 +5,7 @@
 #import "src/flatten.typ": flatten
 #import "src/renderer.typ": render-char-token
 #import "src/config.typ": default-opts, default-rendering, default-tcy, merge-config
-#import "src/kinsoku.typ": burasagari, oikomi
+
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).
 ///
