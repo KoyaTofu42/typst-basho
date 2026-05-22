@@ -12,24 +12,52 @@
 #let default-tcy = (
   pattern: regex("^[A-Za-z0-9,]+$"),
   sizes: (1em, 0.65em, 0.5em), // for len <=2, ==3, >=4
-  /// Filters TCY tokens: only 1-2 digit runs stay as TCY.
-  /// Alphabetic or mixed alphanumeric runs, and 3+ digit runs, become `turn`.
+  /// Filters TCY tokens using config.categories.classify.
+  /// Explicit #tcy() calls (forced: true / "horizontal") stay as TCY.
+  /// Explicit #vert() calls (forced: "char") split into upright chars.
+  /// Auto-detected TCY runs are classified into:
+  ///   "horizontal" → keep as TCY (tate-chu-yoko)
+  ///   "rotated"    → convert to "turn" (rotated 90°)
+  ///   "char"       → split into individual upright char tokens
   filter: (tokens, module, config) => {
     let new-tokens = ()
+    let classify-fn = none
+    if "categories" in config and "classify" in config.categories {
+      classify-fn = config.categories.classify
+    }
     for t in tokens {
       if t.type == "tcy" {
-        let clusters = t.text.clusters()
-        let is-digits = true
-        for ch in clusters {
-          if ch.match(regex("^[0-9]$")) == none {
-            is-digits = false
+        let forced = t.at("forced", default: false)
+        if forced != false {
+          if forced == "char" {
+            if type(t.text) == str {
+              for ch in t.text.clusters() {
+                new-tokens.push((type: "char", text: ch))
+              }
+            } else {
+              new-tokens.push((type: "char", text: t.text))
+            }
+          } else {
+            new-tokens.push(t)
           }
-        }
-
-        if is-digits and clusters.len() <= 2 {
-          new-tokens.push(t)
+        } else if classify-fn != none {
+          let cat = classify-fn(t.text, config)
+          if cat == "horizontal" {
+            new-tokens.push(t)
+          } else if cat == "rotated" {
+            new-tokens.push((type: "turn", text: t.text))
+          } else { // "char"
+            if type(t.text) == str {
+              for ch in t.text.clusters() {
+                new-tokens.push((type: "char", text: ch))
+              }
+            } else {
+              new-tokens.push((type: "char", text: t.text))
+            }
+          }
         } else {
-          new-tokens.push((type: "turn", text: t.text))
+          // Fallback: keep as TCY
+          new-tokens.push(t)
         }
       } else {
         new-tokens.push(t)
@@ -79,6 +107,14 @@
     ruby-size: 0.5em,
     ruby-offset: 1em,
     heading-scales: (1.5, 1.3, 1.15), // h1, h2, h3
+  ),
+  categories: (
+    /// Classifies an auto-detected TCY text run into a rendering category.
+    /// (text, config) => "horizontal" | "rotated" | "char"
+    classify: (text, config) => {
+      if text.match(regex("^[0-9]{1,2}$")) != none { return "horizontal" }
+      return "rotated"
+    },
   ),
   layout: (
     columns: 1,

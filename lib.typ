@@ -8,9 +8,17 @@
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).
 ///
-/// - body (str): The text to rotate.
+/// - body (str): The text to render horizontally.
 /// -> content: Metadata tag instructing the engine to render as TCY.
-#let tcy(body) = metadata((type: "tcy", text: body))
+#let tcy(body) = metadata((type: "tcy", text: body, forced: true))
+
+/// Forces a sequence of characters to be rendered upright (vertical), one per box.
+/// Useful for short Latin abbreviations (e.g. "JIS") that should appear upright
+/// in vertical text rather than rotated.
+///
+/// - body (str): The text to render upright.
+/// -> content: Metadata tag instructing the engine to render as upright chars.
+#let vert(body) = metadata((type: "tcy", text: body, forced: "char"))
 
 /// Renders arbitrary content rotated 90 degrees clockwise.
 /// Useful for vertical equations, figures, or nested blocks where you want

@@ -17,18 +17,23 @@
 /// -> content: Horizontal text in a 1em × 1em box.
 #let render-tcy(token, font, config) = {
   let f-opt = if font != none { (font: font) } else { (:) }
-  let len = token.text.clusters().len()
   let tcy-module = config.tcy.first()
   let sizes = tcy-module.sizes
-  let sz = if len <= 2 { sizes.at(0) }
-    else if len <= 3 { sizes.at(1) }
-    else { calc.min(sizes.at(2) / 1em, 1.0 / len) * config.sizing.char-box }
+
+  let inner = if type(token.text) == str {
+    let len = token.text.clusters().len()
+    let sz = if len <= 2 { sizes.at(0) }
+      else if len <= 3 { sizes.at(1) }
+      else { calc.min(sizes.at(2) / 1em, 1.0 / len) * config.sizing.char-box }
+    text(..f-opt, size: sz, token.text)
+  } else {
+    token.text
+  }
+
   box(
     width: config.sizing.char-box,
     height: config.sizing.char-box,
-    align(center + horizon,
-      text(..f-opt, size: sz, token.text),
-    )
+    align(center + horizon, inner),
   )
 }
 
