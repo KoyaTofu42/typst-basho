@@ -18,6 +18,13 @@
 #let char-box(body, font, config, h-align: center, height: none) = {
   let render-module = config.rendering.first()
   let f-opt = if font != none { (font: font) } else { (:) }
+
+  // Half-width spaces render as a narrow vertical gap (default 0.25em)
+  if body == "\u{0020}" {
+    let space-width = config.at("space-width", default: 0.25em)
+    return box(width: config.sizing.char-box, height: space-width)
+  }
+
   let inner = if body == "―" {
     text(
       ..f-opt,
@@ -38,6 +45,6 @@
     width: config.sizing.char-box,
     height: box-height,
     clip: false,
-    align(h-align + horizon, inner)
+    align(h-align + horizon, inner),
   )
 }
