@@ -1,7 +1,7 @@
 // src/renderer.typ
 // Character box rendering with OpenType vertical glyph features
 
-#import "kinsoku.typ": is-opening, is-closing
+#import "kinsoku.typ": is-closing, is-opening
 
 #import "char-box.typ": char-box
 
@@ -22,9 +22,9 @@
 
   let inner = if type(token.text) == str {
     let len = token.text.clusters().len()
-    let sz = if len <= 2 { sizes.at(0) }
-      else if len <= 3 { sizes.at(1) }
-      else { calc.min(sizes.at(2) / 1em, 1.0 / len) * config.sizing.char-box }
+    let sz = if len <= 2 { sizes.at(0) } else if len <= 3 { sizes.at(1) } else {
+      calc.min(sizes.at(2) / 1em, 1.0 / len) * config.sizing.char-box
+    }
     text(..f-opt, size: sz, token.text)
   } else {
     token.text
@@ -51,13 +51,11 @@
     width: config.sizing.char-box,
     height: 0pt,
     clip: false,
-    align(center + top,
-      text(
-        ..f-opt,
-        features: config.features,
-        token.text,
-      )
-    )
+    align(center + top, text(
+      ..f-opt,
+      features: config.features,
+      token.text,
+    )),
   )
 }
 
@@ -82,10 +80,9 @@
 
   let heading-level = token.at("heading", default: none)
   let scales = config.sizing.heading-scales
-  let font-scale = if heading-level == 1 { scales.at(0) }
-    else if heading-level == 2 { scales.at(1) }
-    else if heading-level == 3 { scales.at(2) }
-    else { 1.0 }
+  let font-scale = if heading-level == 1 { scales.at(0) } else if heading-level == 2 { scales.at(1) } else if (
+    heading-level == 3
+  ) { scales.at(2) } else { 1.0 }
 
   // Determine kinsoku-aware alignment by checking all kinsoku modules
   let check-opening(token) = {
@@ -103,24 +100,20 @@
 
   let rendered = if token.type == "char" {
     // Determine horizontal alignment based on bracket type
-    let h-align = if check-opening(token) { right }
-      else if check-closing(token) { left }
-      else { center }
+    let h-align = if check-opening(token) { right } else if check-closing(token) { left } else { center }
     if heading-level != none {
       // Heading characters: scaled box
       let sz = config.sizing.char-box * font-scale
       box(
         width: sz,
         height: sz,
-        align(h-align + horizon,
-          text(
-            ..f-opt,
-            size: config.sizing.char-box * font-scale,
-            features: config.features,
-            weight: "bold",
-            token.text,
-          )
-        )
+        align(h-align + horizon, text(
+          ..f-opt,
+          size: config.sizing.char-box * font-scale,
+          features: config.features,
+          weight: "bold",
+          token.text,
+        )),
       )
     } else {
       char-box(token.text, font, config, h-align: h-align)
@@ -136,16 +129,16 @@
       width: 0pt,
       height: 0pt,
       clip: true,
-      heading(level: token.level, outlined: true, bookmarked: true, token.body)
+      heading(level: token.level, outlined: true, bookmarked: true, token.body),
     )
   } else {
     none
   }
 
-  if rendered != none {
+  if rendered != none and token.type != "turn" {
     if token.at("bold", default: false) { rendered = strong(rendered) }
     if token.at("italic", default: false) { rendered = emph(rendered) }
   }
-  
+
   rendered
 }

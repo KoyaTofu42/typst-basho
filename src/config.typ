@@ -32,10 +32,10 @@
           if forced == "char" {
             if type(t.text) == str {
               for ch in t.text.clusters() {
-                new-tokens.push((type: "char", text: ch))
+                new-tokens.push(t + (type: "char", text: ch))
               }
             } else {
-              new-tokens.push((type: "char", text: t.text))
+              new-tokens.push(t + (type: "char", text: t.text))
             }
           } else {
             new-tokens.push(t)
@@ -45,14 +45,15 @@
           if cat == "horizontal" {
             new-tokens.push(t)
           } else if cat == "rotated" {
-            new-tokens.push((type: "turn", text: t.text))
-          } else { // "char"
+            new-tokens.push(t + (type: "turn", text: t.text))
+          } else {
+            // "char"
             if type(t.text) == str {
               for ch in t.text.clusters() {
-                new-tokens.push((type: "char", text: ch))
+                new-tokens.push(t + (type: "char", text: ch))
               }
             } else {
-              new-tokens.push((type: "char", text: t.text))
+              new-tokens.push(t + (type: "char", text: t.text))
             }
           }
         } else {
@@ -92,6 +93,7 @@
 #import "turn.typ": default-turn
 #import "vblock.typ": default-vblock
 #import "hblock.typ": default-hblock
+#import "list.typ": default-bullet-list, default-numbered-list
 
 
 // ---------------------------------------------------------------------------
@@ -125,6 +127,10 @@
   kinsoku: (burasagari,), // array of self-contained rule modules
   tcy: (default-tcy,), // array of self-contained tcy modules
   rendering: (default-rendering, default-spacing, default-turn, default-vblock, default-hblock), // array of self-contained rendering modules
+  list: (
+    bullet: default-bullet-list,
+    numbered: default-numbered-list + (gap: 0.25em),
+  ),
 )
 
 // ---------------------------------------------------------------------------

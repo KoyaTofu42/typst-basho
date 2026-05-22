@@ -56,34 +56,37 @@
 /// any kinsoku violations (cascading push-out).
 #let _calculate-push-out(col, token, rules) = {
   let count = 0
+  let closing-run = 0
   let current-first = token
   let i = col.len() - 1
-  
+
   if is-closing(token, rules) {
     count = 1
+    closing-run = 1
   } else if col.len() > 0 and is-opening(col.last(), rules) {
     count = 1
   } else if col.len() > 0 and is-unbreakable-pair(col.last(), token, rules) {
     count = 1
   }
-  
+
   if count == 1 and i >= 0 {
     current-first = col.at(i)
     i -= 1
   }
-  
+
   while count > 0 and i >= 0 {
     let prev = col.at(i)
     let needs-more = false
-    
+
     if is-closing(current-first, rules) {
       needs-more = true
+      closing-run += 1
     } else if is-unbreakable-pair(prev, current-first, rules) {
       needs-more = true
     } else if is-opening(prev, rules) {
       needs-more = true
     }
-    
+
     if needs-more {
       count += 1
       current-first = prev
@@ -92,7 +95,12 @@
       break
     }
   }
-  
+
+  if closing-run >= 2 and i >= 0 {
+    // Push one more char before consecutive forbidden-start characters.
+    count += 1
+  }
+
   count
 }
 
@@ -116,32 +124,32 @@
   if is-closing(token, rules) {
     return (action: "pull-in")
   }
-  
+
   // For Oikomi, we still calculate push-out for opening brackets or unbreakable pairs.
   // We temporarily disable is-closing check for the INITIAL token since it would have
   // been handled by pull-in above, but we still need the cascading logic.
   let push-count = 0
   let current-first = token
   let i = col.len() - 1
-  
+
   if col.len() > 0 and is-opening(col.last(), rules) {
     push-count = 1
   } else if col.len() > 0 and is-unbreakable-pair(col.last(), token, rules) {
     push-count = 1
   }
-  
+
   if push-count == 1 and i >= 0 {
     current-first = col.at(i)
     i -= 1
   }
-  
+
   while push-count > 0 and i >= 0 {
     let prev = col.at(i)
     let needs-more = false
-    if is-closing(current-first, rules) { needs-more = true }
-    else if is-unbreakable-pair(prev, current-first, rules) { needs-more = true }
-    else if is-opening(prev, rules) { needs-more = true }
-    
+    if is-closing(current-first, rules) { needs-more = true } else if is-unbreakable-pair(prev, current-first, rules) {
+      needs-more = true
+    } else if is-opening(prev, rules) { needs-more = true }
+
     if needs-more {
       push-count += 1
       current-first = prev

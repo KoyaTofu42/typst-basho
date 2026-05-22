@@ -3,7 +3,9 @@
 
 #let is-european(t) = t.type in ("tcy", "turn")
 #let is-cjk(t) = (
-  t.type == "char" and t.text.match(regex("^[^\s\p{P}]$")) != none and t.text.match(regex("^[A-Za-z0-9,]$")) == none
+  t.type == "char"
+    and t.text.match(regex("^[^\s\p{P}]$")) != none
+    and t.text.match(regex("^[A-Za-z0-9,.!?:;]$")) == none
 )
 
 /// Default spacing rendering module.

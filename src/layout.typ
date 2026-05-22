@@ -73,23 +73,68 @@
         }
       }
 
-      if decision.action == "hang" {
+      if decision.action == "hang" or decision.action == "pull-in" {
+        let should-forward = false
+        if decision.action == "hang" and i + 1 < tokens.len() {
+          let next-token = tokens.at(i + 1)
+          if next-token.type == "char" {
+            for rules in config.kinsoku {
+              if rules.forbidden-start.contains(next-token.text) {
+                should-forward = true
+                break
+              }
+            }
+          }
+        }
+
+        if should-forward and current-col.len() > 0 {
+          let popped = current-col.pop()
+          columns.push(current-col)
+          current-col = (popped, token)
+          current-height = heights.slice(i - 1, i + 1).sum()
+          i += 1
+          continue
+        }
+
         let hanging-token = token
         hanging-token.type = "hanging"
         current-col.push(hanging-token)
+        i += 1
+
+        // Consume consecutive hang/pull-in tokens at the same overflow boundary.
+        while i < tokens.len() {
+          let next-token = tokens.at(i)
+          let next-height = heights.at(i)
+
+          if next-token.type == "newline" or next-token.type == "vblock" or next-token.type == "hblock" {
+            break
+          }
+
+          if current-height > 0pt and current-height + next-height > max-height {
+            let next-decision = (action: "break")
+            for rules in config.kinsoku {
+              let d = (rules.decide)(current-col, next-token, rules)
+              if d.action != "break" {
+                next-decision = d
+                break
+              }
+            }
+
+            if next-decision.action == "hang" or next-decision.action == "pull-in" {
+              let extra = next-token
+              extra.type = "hanging"
+              current-col.push(extra)
+              i += 1
+              continue
+            }
+          }
+
+          break
+        }
+
         columns.push(current-col)
         current-col = ()
         current-height = 0pt
-        i += 1
-        continue
-      } else if decision.action == "pull-in" {
-        let pull-token = token
-        pull-token.type = "hanging"
-        current-col.push(pull-token)
-        columns.push(current-col)
-        current-col = ()
-        current-height = 0pt
-        i += 1
         continue
       } else if decision.action == "push-out" {
         let count = decision.count

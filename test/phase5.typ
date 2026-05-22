@@ -5,7 +5,7 @@
 
 // Small page: 130pt usable height at 12pt = 10 chars per column
 #set page(width: 200pt, height: 150pt, margin: 10pt)
-#set text(size: 12pt)
+#set text(size: 12pt, font: "Harano Aji Mincho")
 
 // Test 1: Opening bracket at column end should move to next column.
 // "あいうえおかきくけ「こ" = 11 chars. Without kinsoku, column would be:
@@ -47,3 +47,11 @@
 
 // Test 5: No kinsoku needed — normal text should be unaffected.
 #tate("あいうえおかきくけこさしすせそたちつてと")
+
+#pagebreak()
+
+// Test 6: Hanging punctuation followed by a forbidden-start should push forward.
+// "あいうえおかきくけこ。）さ" = 13 chars (incl period + closing bracket).
+//   col1: あいうえおかきくけこ + 。(hanging)
+//   col2: ）さ
+#tate("あいうえおかきくけこ。）さ")

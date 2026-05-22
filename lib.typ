@@ -3,7 +3,8 @@
 
 #import "src/layout.typ": layout-tate
 #import "src/flatten.typ": flatten
-#import "src/config.typ": default-opts, merge-config, default-tcy, default-rendering
+#import "src/renderer.typ": render-char-token
+#import "src/config.typ": default-opts, default-rendering, default-tcy, merge-config
 #import "src/kinsoku.typ": burasagari, oikomi
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).
@@ -54,14 +55,18 @@
 #let tate(body, font: none, columns: none, column-gap: none, config: (:)) = {
   // Merge user config with defaults
   let cfg = merge-config(default-opts, config)
-  
+
   // Legacy params override config for backward compatibility
   if font != none { cfg.font = font }
   if columns != none { cfg.layout.insert("columns", columns) }
   if column-gap != none { cfg.layout.column-gap = column-gap }
 
+  // Register list module renderers into the rendering array
+  cfg.rendering.push(cfg.list.bullet)
+  cfg.rendering.push(cfg.list.numbered)
+
   let tokens = flatten(body, cfg)
-  
+
   // Run rendering module hooks (normalization etc.)
   for module in cfg.rendering {
     if "transform" in module {
@@ -72,6 +77,39 @@
   for module in cfg.tcy {
     tokens = (module.filter)(tokens, module, cfg)
   }
-  
+
   layout-tate(tokens, cfg)
+}
+
+/// Renders native Typst content vertically inline (no pagination).
+/// Use when you need vertical text inside shapes or inline blocks.
+///
+/// - body (content | str): The content to render vertically.
+/// - font (str): Font family to use. Overrides config if provided.
+/// - config (dictionary): Custom Dependency Injection configuration.
+/// -> content: Inline vertical stack of rendered glyphs.
+#let tate-inline(body, font: none, config: (:)) = {
+  let cfg = merge-config(default-opts, config)
+  if font != none { cfg.font = font }
+
+  // Keep render hooks consistent with the main pipeline.
+  let tokens = flatten(body, cfg)
+  for module in cfg.rendering {
+    if "transform" in module {
+      tokens = (module.transform)(tokens, module, cfg)
+    }
+  }
+  for module in cfg.tcy {
+    tokens = (module.filter)(tokens, module, cfg)
+  }
+
+  let rendered = tokens
+    .filter(token => token.type != "newline" and token.type != "heading-anchor")
+    .map(token => render-char-token(token, cfg.font, cfg))
+
+  stack(
+    dir: ttb,
+    spacing: 0pt,
+    ..rendered,
+  )
 }
