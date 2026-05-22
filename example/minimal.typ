@@ -1,4 +1,4 @@
-#import "../lib.typ": tate
+#import "@preview/basho:0.1.0": tate
 
 #set text(font: "Harano Aji Mincho")
 #set page(paper: "jp-business-card")

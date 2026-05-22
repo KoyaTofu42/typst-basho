@@ -1,4 +1,4 @@
-#import "../lib.typ": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
+#import "@preview/basho:0.1.0": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
 
 #set text(font: "Harano Aji Mincho", size: 11pt)
 #set page(paper: "jis-b5", margin: (top: 20mm, bottom: 20mm, left: 25mm, right: 20mm))
@@ -73,7 +73,7 @@
 = ソース
 
 ```typst
-#import "../lib.typ": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
+#import "@preview/basho:0.1.0": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
 
 #set text(font: "Harano Aji Mincho", size: 11pt)
 #set page(paper: "jis-b5", margin: (top: 20mm, bottom: 20mm, left: 25mm, right: 20mm))

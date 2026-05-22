@@ -6,7 +6,7 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 
 ### Minimal example
 ```typst
-#import "lib.typ": tate
+#import "@preview/basho:0.1.0": tate
 
 #set text(font: "Harano Aji Mincho")
 #set page(paper: "jp-business-card")
@@ -19,6 +19,10 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 
 　　蝉の声
 ```
+
+### Full example
+
+An extended example with various features is available in `example/japanese-vertical.pdf`.
 
 ### Inline macros
 
