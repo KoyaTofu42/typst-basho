@@ -6,7 +6,7 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 
 ### Minimal example
 ```typst
-#import "@preview/basho:0.1.0": tate
+#import "lib.typ": tate
 
 #set text(font: "Harano Aji Mincho")
 #set page(paper: "jp-business-card")
@@ -30,6 +30,10 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 | `#turn[body]` | Rotate content 90° clockwise |
 | `#vblock[body]` | Rotated block (unrestricted width) |
 | `#hblock[body]` | Horizontal block (no rotation) |
+
+### Inline rendering
+
+`#tate-inline(body, font, config)` renders content as a vertical stack without pagination — useful inside `#hblock[...]` or other upright contexts.
 
 ---
 
@@ -93,13 +97,13 @@ Each module in `config.rendering` can export a `transform(tokens, module, config
 
 | Module | Purpose |
 |---|---|
-| `default-rendering` | Normalizes dashes (EM DASH → HORIZONTAL BAR) |
-| `default-spacing` | Inserts ¼em gaps between CJK and European text |
+| `default-rendering-params()` | Normalizes dashes (EM DASH → HORIZONTAL BAR) |
+| `default-spacing()` | Inserts gaps between CJK and European text |
 | `default-turn` | (no transform — provides node renderer) |
 | `default-vblock` | (no transform — provides node renderer) |
 | `default-hblock` | (no transform — provides node renderer) |
-| `list.bullet` | (registered dynamically — provides node renderer) |
-| `list.numbered` | (registered dynamically — provides node renderer) |
+| `default-bullet-list-params()` | (registered dynamically — provides node renderer) |
+| `default-numbered-list-params()` | (registered dynamically — provides node renderer) |
 
 #### Layer 3 — TCY filtering (`cfg.tcy[].filter`)
 
@@ -119,7 +123,7 @@ Each TCY module exports a `filter(tokens, module, config) => tokens` function. T
 **Node-renderer dispatch** — `renderer.typ` dispatches per token type:
 
 | Token type | Renderer | Box |
-|---|---|---|
+|---|---|---|---|
 | `char` | `char-box` | 1em × 1em (or reduced height for compression) |
 | `tcy` | `render-tcy` | 1em × 1em, horizontal text, font size adapts |
 | `hanging` | `render-hanging` | 1em × 0pt (overflows into gutter) |
@@ -128,6 +132,7 @@ Each TCY module exports a `filter(tokens, module, config) => tokens` function. T
 | `vblock` | `render-vblock` | 1em × usable-height, rotated 90° |
 | `hblock` | `render-hblock` | 1em × usable-height, horizontal |
 | `spacing` | `render-spacing` | 1em × width (gap token) |
+| `bullet-list-marker` | inline bullet | 1em × 1em |
 | `heading-anchor` | inline heading | 0pt × 0pt (bookmark only) |
 
 Custom node renderers can be injected via any module's `node-renderers` field.
@@ -175,21 +180,21 @@ The `config` parameter on `#tate()` accepts a nested dictionary. `merge-config` 
     hooks: (),
   ),
 
-  kinsoku: default-resolver(...),
+  kinsoku: default-resolver(),
 
-  tcy: (default-tcy,),
+  tcy: (default-tcy(),),
 
   rendering: (
-    default-rendering,
-    default-spacing,
+    default-rendering-params(),
+    default-spacing(),
     default-turn,
     default-vblock,
     default-hblock,
   ),
 
   list: (
-    bullet: default-bullet-list,
-    numbered: default-numbered-list + (gap: 0.25em),
+    bullet: default-bullet-list-params(),
+    numbered: default-numbered-list-params(),
   ),
 )
 ```
