@@ -22,7 +22,7 @@
   )
 }
 
-#import "core/kinsoku.typ": is-forbidden-start, is-valid-line-end, apply-spacing-compression
+#import "core/kinsoku.typ": apply-spacing-compression, is-forbidden-start, is-valid-line-end
 
 /// Splits a flat token array into column groups based on a maximum height
 /// (absolute length). Uses pre-measured token heights for accuracy,
@@ -194,7 +194,8 @@
       })
 
       let col-gap-abs = measure(v(config.layout.column-gap)).height
-      let available-height = size.height
+      let margin-height = (page.height - size.height) / 2
+      let available-height = size.height - (here().position().y - margin-height.to-absolute())
       let usable-height = (available-height - (config.layout.columns - 1) * col-gap-abs) / config.layout.columns
 
       let gap-abs = measure(h(config.layout.gap)).width
