@@ -314,7 +314,7 @@
 // Phase 9: Kinsoku line breaking (dash + ellipsis)
 // ═══════════════════════════════════════════════════════════════════════════════
 #pagebreak()
-#set page(width: 8cm, height: 11em, margin: 1em)
+#set page(width: 8cm, height: 14em, margin: 1em)
 
 = Phase 9 Test: Kinsoku line breaking
 
@@ -626,10 +626,9 @@ The next two blocks use the same content with different line-breaking presets so
 #v(1em)
 
 #tate(config: (
-    kinsoku: default-resolver(mode: "burasagari"),
-    layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
-  ),
-)[
+  kinsoku: default-resolver(mode: "burasagari"),
+  layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
+))[
   = 禁則モード
   == Burasagari
   これはぶら下がりの確認用の長文です。行末に来た「かぎかっこ」や（丸括弧）や、句読点、そして......のような連続記号が、列の端でどのように処理されるかを確認するために、あえて長く続けています。さらに、英数字の2026とPDFを混ぜて、縦組みの中での表示差も見ます。
@@ -640,10 +639,9 @@ The next two blocks use the same content with different line-breaking presets so
 #pagebreak()
 
 #tate(config: (
-    kinsoku: default-resolver(mode: "oikomi"),
-    layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
-  ),
-)[
+  kinsoku: default-resolver(mode: "oikomi"),
+  layout: (gap: 1.1em, columns: 2, column-gap: 10pt),
+))[
   == Oikomi
   これは追い込みの確認用の長文です。行末に来た「かぎかっこ」や（丸括弧）や、句読点、そして……のような連続記号が、ぶら下がりではなく追い込み寄りに処理されるかを見ます。#ruby("追い込み", "おいこみ")の見え方も合わせて確認します。
 
@@ -654,6 +652,28 @@ The next two blocks use the same content with different line-breaking presets so
 
 #pagebreak()
 
+= Table Test
+
+#figure(
+  caption: [こんなこともできます],
+  table(
+    rows: (4em, 5em, 3em),
+    [#tate[これからの組版の話をしよう]],
+    [#tate[隣の客はよく柿喰う客だ]],
+    [#tate[ここはとてもせまいですね]],
+  ),
+)
+
+#rect(
+  height: 13em,
+  inset: 0.7em,
+  [#tate[ジャッジマンから#ruby("科", "か")される#ruby("最", "もっと")も#ruby("重", "おも")い#ruby("罰", "ばつ")「#ruby("没収", "コンフィスケイション")」を付加された「#ruby("死刑", "デス・ペナルティ")」]],
+)
+
+TODO: このように場所を指定するcontainerでは配置が崩れる
+
+#pagebreak()
+
 = Final Stress
 
 As a final test, the next page has a series of edge cases for kinsoku processing, where the break decision should cascade and push multiple characters to the next line.
@@ -661,16 +681,15 @@ As a final test, the next page has a series of edge cases for kinsoku processing
 #v(1em)
 
 #tate(config: (
-    font: "Harano Aji Mincho",
-    sizing: (
-      char-box: 1em,
-      ruby-size: 0.45em,
-      ruby-offset: 1.05em,
-      heading-scales: (1.6, 1.35, 1.15),
-    ),
-    layout: (gap: 0.95em, columns: 3, column-gap: 8pt),
+  font: "Harano Aji Mincho",
+  sizing: (
+    char-box: 1em,
+    ruby-size: 0.45em,
+    ruby-offset: 1.05em,
+    heading-scales: (1.6, 1.35, 1.15),
   ),
-)[
+  layout: (gap: 0.95em, columns: 3, column-gap: 8pt),
+))[
   = 総合確認
   ここでは、#strong[総合テスト]、#emph[見た目]、#ruby("縦横", "たてよこ")、#tcy("OK")、#turn[RT]、$a\/b$や#hblock[#rect(width: 24pt, height: 12pt, fill: rgb("b9d4ff"))]を一度にまとめて確認する。
 
