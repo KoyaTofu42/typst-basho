@@ -160,7 +160,7 @@
 
 = Phase 6 Test: Ruby (Furigana)
 
-#import "../lib.typ": layout-tate
+#import "../src/layout.typ": layout-tate
 #import "../src/config.typ": default-opts, merge-config
 
 == Test 1: Standard ruby and long ruby
