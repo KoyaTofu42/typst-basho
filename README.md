@@ -81,7 +81,7 @@ Output
 
 ### Layer-by-layer breakdown
 
-#### Layer 1 — Flatten (`flatten.typ` + `parser.typ`)
+#### Layer 1 — Flatten (`src/pipeline/flatten.typ` + `src/core/parser.typ`)
 
 Walks the Typst content tree recursively. Native elements (`text`, `strong`, `emph`, `heading`, `list`, `enum`, `equation`, metadata macros) are converted into flat token dictionaries:
 
@@ -129,7 +129,7 @@ Each TCY module exports a `filter(tokens, config) => tokens` function. The defau
 **Node-renderer dispatch** — `renderer.typ` dispatches per token type:
 
 | Token type | Renderer | Box |
-|---|---|---|---|
+|---|---|---|---|---|
 | `char` | `char-box` | 1em × 1em (or reduced height for compression) |
 | `tcy` | `render-tcy` | 1em × 1em, horizontal text, font size adapts |
 | `hanging` | `render-hanging` | 1em × 0pt (overflows into gutter) |
@@ -223,8 +223,7 @@ Kinsoku shori controls how lines break at column boundaries. The default resolve
 ### Built-in resolver factory
 
 ```typst
-#import "@preview/basho:0.1.0": tate
-#import "@preview/basho:0.1.0/kinsoku.typ": default-resolver
+#import "@preview/basho:0.1.0": tate, default-resolver
 
 // Defaults
 config: (kinsoku: default-resolver())
@@ -264,10 +263,10 @@ The resolve signature is:
 )
 ```
 
-Standalone helpers are exported from `kinsoku.typ` for building custom resolvers:
+Standalone helpers are exported from `src/core/kinsoku.typ` for building custom resolvers:
 
 ```typst
-#import "@preview/basho:0.1.0/kinsoku.typ":
+#import "src/core/kinsoku.typ":
   is-forbidden-start, is-forbidden-end, is-hanging,
   is-unbreakable-pair, is-compressible-punctuation,
   calculate-shrinkable-space, apply-spacing-compression,
