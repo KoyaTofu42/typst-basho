@@ -105,9 +105,7 @@
             let tok-start = is-forbidden-start(token, config.kinsoku.forbidden-start)
             let pop-start = popped.len() > 0 and is-forbidden-start(popped.first(), config.kinsoku.forbidden-start)
             let needs-more = tok-start and pop-start
-            if needs-more {
-              // Continue popping
-            } else {
+            if not needs-more {
               break
             }
           }
@@ -165,10 +163,8 @@
   ))
 }
 
-#let _pagination-state = state("basho-pagination", none)
-
 /// Main layout entry point. Two-pass approach:
-/// Pass 1: place() measures page dims + actual token heights, stores columns in state.
+/// Pass 1: layout() measures page dims + actual token heights, paginates into columns.
 /// Pass 2: context block reads pre-computed columns and renders with pagebreaks.
 ///
 /// - tokens (array): Array of token dictionaries.

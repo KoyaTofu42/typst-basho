@@ -1,6 +1,4 @@
-// combined-features.typ — All phase tests + huge example merged
-// Generated from: phase1.typ through phase19.typ (excluding phase11),
-//   issue-nya.typ, huge-example.typ
+// combined-features.typ — Merged feature tests
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Phase 1: Basic vertical rendering
