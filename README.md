@@ -27,7 +27,7 @@ Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package
 
 ### Full example
 
-An extended example with various features is available [here](example/japanese-vertical.pdf). An example of Japanese novel typeset is available [here](example/Japanese_novel.pdf).
+An extended example with various features is available [here](example/japanese-vertical.pdf). An example of Japanese novel typeset is available [here](example/Japanese-novel.pdf).
 
 ### Inline macros
 
