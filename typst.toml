@@ -26,3 +26,7 @@ keywords = [
 categories = ["layout", "text", "languages"]
 disciplines = ["linguistics"]
 license = "MIT"
+
+[template]
+path = "template"
+entrypoint = "main.typ"

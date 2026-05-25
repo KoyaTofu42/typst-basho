@@ -2,3 +2,4 @@
 *.pdf
 !/example/*.pdf
 !/example/*.png
+!/template/thumbnail.png
