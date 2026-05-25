@@ -65,4 +65,9 @@ config: (
 | `format` | function | `(n) => str` — formats the number (default: `n => str(n) + "."`) |
 | `gap` | `length` | Space between number and text (default: `0.5em`) |
 | `flatten` | function | Custom flatten logic |
-| `node-renderers` | dictionary | Custom renderers for list tokens |
+| `node-renderers` | dictionary | Custom renderers for list tokens (optional, default `(:)`) |
+
+## See also
+
+- [modules.md](modules.md) — full module contract specifications
+- [extending.md](extending.md) — custom module examples and patterns

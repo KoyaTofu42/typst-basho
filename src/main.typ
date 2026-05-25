@@ -3,8 +3,10 @@
 
 #import "layout.typ": layout-tate
 #import "pipeline/flatten.typ": flatten
+#import "pipeline/transform.typ": apply-transforms
+#import "pipeline/classify.typ": apply-classifiers
 #import "config.typ": default-opts, merge-config
-#import "pipeline/flatten.typ": flatten
+#import "core/validate.typ": validate-config
 #import "renderer/renderer.typ": render-char-token
 
 
@@ -52,20 +54,14 @@
 /// -> content: Vertically rendered paginated content.
 #let tate(body, config: (:)) = {
   let cfg = merge-config(default-opts, config)
+  validate-config(cfg)
 
   cfg.rendering.push(cfg.list.bullet)
   cfg.rendering.push(cfg.list.numbered)
 
   let tokens = flatten(body, cfg)
-
-  for module in cfg.rendering {
-    if "transform" in module {
-      tokens = (module.transform)(tokens)
-    }
-  }
-  for module in cfg.tcy {
-    tokens = (module.filter)(tokens, cfg)
-  }
+  tokens = apply-transforms(tokens, cfg)
+  tokens = apply-classifiers(tokens, cfg)
 
   layout-tate(tokens, cfg)
 }
@@ -78,16 +74,11 @@
 /// -> content: Inline vertical stack of rendered glyphs.
 #let tate-inline(body, config: (:)) = {
   let cfg = merge-config(default-opts, config)
+  validate-config(cfg)
 
   let tokens = flatten(body, cfg)
-  for module in cfg.rendering {
-    if "transform" in module {
-      tokens = (module.transform)(tokens)
-    }
-  }
-  for module in cfg.tcy {
-    tokens = (module.filter)(tokens, cfg)
-  }
+  tokens = apply-transforms(tokens, cfg)
+  tokens = apply-classifiers(tokens, cfg)
 
   let rendered = tokens
     .filter(token => token.type != "newline" and token.type != "heading-anchor")

@@ -1,17 +1,18 @@
 # Architecture
 
-Basho is built on a **Dependency Injection** architecture. Every component is pluggable via a single `config` dictionary. The rendering pipeline has four layers:
+Basho is built on a **Dependency Injection** architecture. Every component is pluggable via a single `config` dictionary. The rendering pipeline has five stages:
 
 ```mermaid
-flowchart TD
-    Input["Input content"] --> Layer1["Layer 1: Flatten<br/>flatten.typ → parser.typ"]
-    Layer1 -->|"token array"| Layer2["Layer 2: Rendering transforms<br/>config.rendering[].transform"]
-    Layer2 -->|"modified token array"| Layer3["Layer 3: TCY filtering<br/>config.tcy[].filter"]
-    Layer3 -->|"classified token array"| Layer4["Layer 4: Layout<br/>layout.typ → paginate → render"]
-    Layer4 --> Output["Output"]
+flowchart LR
+    Input["Input content"] --> Flatten["1. Flatten<br/>flatten.typ → parser.typ"]
+    Flatten --> Transform["2. Transform<br/>transform.typ"]
+    Transform --> Classify["3. Classify<br/>classify.typ"]
+    Classify --> Paginate["4. Paginate<br/>layout.typ"]
+    Paginate --> Render["5. Render<br/>renderer.typ"]
+    Render --> Output["Output"]
 ```
 
-## Layer 1 — Flatten (`src/pipeline/flatten.typ` + `src/core/parser.typ`)
+## Stage 1 — Flatten (`src/pipeline/flatten.typ` + `src/core/parser.typ`)
 
 Walks the Typst content tree recursively. Native elements (`text`, `strong`, `emph`, `heading`, `list`, `enum`, `equation`, metadata macros) are converted into flat token dictionaries:
 
@@ -27,7 +28,13 @@ Walks the Typst content tree recursively. Native elements (`text`, `strong`, `em
 
 Consecutive Latin/digit runs are automatically grouped into TCY tokens.
 
-## Layer 2 — Rendering transforms (`config.rendering[].transform`)
+## Stage 2 — Transform (`src/pipeline/transform.typ`)
+
+Applies every rendering module's `transform(tokens) => tokens` function in config.rendering order. This stage is responsible for token mutation and cleanup before classification:
+
+```typst
+(module.transform)(tokens)  // called for each module that has a "transform" key
+```
 
 Each module in `config.rendering` can export a `transform(tokens) => tokens` function. These are applied in order:
 
@@ -41,27 +48,27 @@ Each module in `config.rendering` can export a `transform(tokens) => tokens` fun
 | `default-bullet-list-params()` | (registered dynamically — provides node renderer) |
 | `default-numbered-list-params()` | (registered dynamically — provides node renderer) |
 
-## Layer 3 — TCY filtering (`config.tcy[].filter`)
+## Stage 3 — Classify (`src/pipeline/classify.typ`)
 
-Each TCY module exports a `filter(tokens, config) => tokens` function. The default module classifies auto-detected TCY runs into:
+Applies every TCY module's `filter(tokens, config) => tokens` function in config.tcy order. The default module classifies auto-detected TCY runs into:
 
 - **"horizontal"** — kept as TCY (e.g. short numbers like `42`)
 - **"rotated"** — converted to `turn` tokens (e.g. `ABC`)
 - **"char"** — split into individual upright `char` tokens
 
-## Layer 4 — Layout & Rendering (`src/layout.typ` → `src/renderer/renderer.typ`)
-
-### Measurement
+## Stage 4 — Paginate (`src/layout.typ`)
 
 Every token is measured inside the layout context using `measure(render-char-token(...))`, producing an array of absolute heights.
 
-### Pagination (`paginate`)
+### Pagination algorithm
 
 Iterates through tokens, accumulates height. When adding a token would exceed the column height, it calls `config.kinsoku.resolve(...)` to determine the line-breaking action.
 
 See [kinsoku.md](kinsoku.md) for the resolution rules.
 
-### Node-renderer dispatch (`renderer.typ`)
+## Stage 5 — Render (`src/renderer/renderer.typ`)
+
+### Node-renderer dispatch
 
 Each token type is dispatched to a dedicated renderer:
 
@@ -81,6 +88,10 @@ flowchart LR
 
 Custom node renderers can be injected via any module's `node-renderers` field.
 
+See [token-schema.md](token-schema.md) for all token types and their required fields.
+See [modules.md](modules.md) for module contract specifications.
+See [extending.md](extending.md) for custom module examples.
+
 ### Column assembly
 
 Columns are arranged right-to-left (RTL) in segments, with multi-page overflow via `colbreak()`.
@@ -93,11 +104,15 @@ src/
 ├── config.typ            # merge-config, default-opts, factory functions
 ├── layout.typ            # paginate, render-column, render-page, layout-tate
 ├── pipeline/
-│   └── flatten.typ       # Content tree traversal → token array
+│   ├── flatten.typ       # Content tree traversal → token array
+│   ├── transform.typ     # Transform stage: apply config.rendering transforms
+│   └── classify.typ      # Classify stage: apply config.tcy filters
 ├── core/
+│   ├── token.typ         # Token creation and merge helpers
 │   ├── parser.typ        # String tokenizer (inline parsing)
 │   ├── char-box.typ      # Character box rendering
 │   ├── kinsoku.typ       # Japanese line-breaking rules + default resolver
+│   ├── validate.typ      # Config validation
 │   ├── tcy.typ           # Tate-chu-yoko detection & classification
 │   ├── spacing.typ       # CJK/European spacing insertion
 │   ├── turn.typ          # Rotated content rendering

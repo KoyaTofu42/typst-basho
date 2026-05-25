@@ -135,3 +135,9 @@ Inserts gaps between CJK and European text. No parameters.
   ),
 ))[...]
 ```
+
+## See also
+
+- [modules.md](modules.md) — full module contract specifications
+- [token-schema.md](token-schema.md) — all token types and fields
+- [extending.md](extending.md) — custom module examples and patterns
