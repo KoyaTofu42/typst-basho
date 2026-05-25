@@ -655,7 +655,7 @@ The next two blocks use the same content with different line-breaking presets so
 #figure(
   caption: [こんなこともできます],
   table(
-    rows: (4em, 5em, 3em),
+    rows: (6em, 5em, 3em),
     [#tate[これからの組版の話をしよう]],
     [#tate[隣の客はよく柿喰う客だ]],
     [#tate[ここはとてもせまいですね]],
@@ -668,13 +668,12 @@ The next two blocks use the same content with different line-breaking presets so
   [#tate[ジャッジマンから#ruby("科", "か")される#ruby("最", "もっと")も#ruby("重", "おも")い#ruby("罰", "ばつ")「#ruby("没収", "コンフィスケイション")」を付加された「#ruby("死刑", "デス・ペナルティ")」]],
 )
 
-TODO: このように場所を指定するcontainerでは配置が崩れる
 
 #pagebreak()
 
-= Final Stress
+= Stress
 
-As a final test, the next page has a series of edge cases for kinsoku processing, where the break decision should cascade and push multiple characters to the next line.
+As a overall test, the next page has a series of edge cases for kinsoku processing, where the break decision should cascade and push multiple characters to the next line.
 
 #v(1em)
 
@@ -696,3 +695,25 @@ As a final test, the next page has a series of edge cases for kinsoku processing
   == 終わりに
   Bashoの public APIは少ないが、Typst側の組み合わせは多い。
 ]
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Phase N: Asymmetric page margins — regression test
+// ═══════════════════════════════════════════════════════════════════════════════
+// Uses margin: (top: 50pt, bottom: 10pt). With the old code,
+// (page.height - size.height) / 2 = (160 - 100) / 2 = 30pt ≠ 50pt top margin.
+// This caused available-height to be 20pt too small, breaking pagination.
+// With the fix (page.margin.top), the actual 50pt top margin is used correctly.
+// ═══════════════════════════════════════════════════════════════════════════════
+#pagebreak()
+#set page(width: 300pt, height: 200pt, margin: (top: 50pt, bottom: 20pt, left: 10pt, right: 30pt))
+#set text(font: "Harano Aji Mincho", size: 12pt)
+
+== Phase N: Asymmetric margins
+
+#tate(config: (font: "Harano Aji Mincho", sizing: (char-box: 12pt)))[
+  そのころわたくしは、モリーオ市の博物局に勤めて居りました。
+  　十八等官でしたから役所のなかでも、ずうっと下の方でしたし俸給ほうきゅうもほんのわずかでしたが、受持ちが標本の採集や整理で生れ付き好きなことでしたから、わたくしは毎日ずいぶん愉快にはたらきました。殊にそのころ、モリーオ市では競馬場を植物園に拵こしらえ直すというので、その景色のいいまわりにアカシヤを植え込んだ広い地面が、切符売場や信号所の建物のついたまま、わたくしどもの役所の方へまわって来たものですから、
+]
+
+// ── Expected output with fix: 3 even columns (~6 chars each) ──
+// With the old code: ~5 chars per column, causing early break.
