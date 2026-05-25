@@ -78,6 +78,7 @@ Standalone helpers are exported from `src/core/kinsoku.typ` for building custom 
   is-forbidden-start, is-forbidden-end, is-hanging,
   is-unbreakable-pair, is-compressible-punctuation,
   calculate-shrinkable-space, apply-spacing-compression,
+  get-compressible-amount, count-justification-points, justify-line,
   is-valid-line-end, default-resolver
 ```
 

@@ -44,7 +44,7 @@ A rendering module provides token transforms and/or custom node renderers.
 
 ```typst
 (
-  transform: (tokens) => tokens,   // optional: token array mutation
+  transform: (tokens, config) => tokens,   // optional: token array mutation
   node-renderers: (                 // optional: custom token renderers
     "<token-type>": (token, config) => content,
   ),
@@ -69,7 +69,7 @@ Both keys are optional. A module can provide one, the other, or both.
 
 ```typst
 (let custom-transform = (
-  transform: tokens => tokens.map(t => {
+  transform: (tokens, config) => tokens.map(t => {
     if t.type == "char" and t.text == "。" { t.text = "．" }
     t
   }),

@@ -91,9 +91,15 @@ Arrays (like `kinsoku`, `tcy`, `rendering`) are replaced wholesale — intention
 | `dash-scale` | `1.25em` | Font size for the horizontal-bar character (―) |
 | `node-renderers` | `(:)` | Custom token-type renderers |
 
-### `default-spacing()`
+### `default-spacing(cjk-european-gap, european-cjk-gap, bracket-gap)`
 
-Inserts gaps between CJK and European text. No parameters.
+Automatically assigns adjacency spacing and tags justification points.
+
+| Parameter | Default | Description |
+|---|---|---|
+| `cjk-european-gap` | `0.25em` | Gap after a CJK char before a European char |
+| `european-cjk-gap` | `0.25em` | Gap after a European char before a CJK char |
+| `bracket-gap` | `0.5em` | Gap after a closing bracket before an opening bracket |
 
 ## Override examples
 
@@ -125,7 +131,7 @@ Inserts gaps between CJK and European text. No parameters.
   rendering: (
     default-rendering-params(),
     default-spacing(),
-    (transform: tokens => tokens.map(t => {
+    (transform: (tokens, config) => tokens.map(t => {
       if t.type == "char" and t.text == "。" { t.text = "．" }
       t
     })),

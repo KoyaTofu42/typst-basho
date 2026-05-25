@@ -13,6 +13,8 @@ Every token in Basho is a dictionary with at least a `type` field. Additional fi
 | `heading` | `int` or `none` | Heading level (1-3) when inside a heading |
 | `dest` | `str` or `none` | Link destination when inside a `#link()` |
 | `compression` | `length` | Kinsoku compression amount applied during oikomi |
+| `space-after` | `length` | Padding added below the token for spacing rules or justification |
+| `justification-point` | `bool` | Whether the token is eligible for expansion during line justification |
 
 ## Token types
 
