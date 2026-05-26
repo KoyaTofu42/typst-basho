@@ -54,7 +54,7 @@
       let inner = flatten(c.body, config)
       inner = inner.map(t => merge-token(t, (heading: level)))
       tokens += inner
-      tokens.push(token("newline", fields: (text: "\n")))
+      tokens.push(token("parbreak", fields: (text: "\n")))
     } else if fname == "link" {
       let dest = c.dest
       let inner = flatten(c.body, config)
