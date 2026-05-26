@@ -12,7 +12,9 @@
 /// -> content: Rendered ruby box.
 #let render-ruby(token, config) = {
   let base-is-str = type(token.text) == str
-  let base-chars = if base-is-str { token.text.clusters() } else { (token.text,) }
+  let base-chars = if base-is-str { token.text.clusters() } else {
+    (token.text,)
+  }
   let base-len = if base-is-str { base-chars.len() } else { 1 }
   let base-height = base-len * config.sizing.char-box
 
@@ -27,7 +29,9 @@
     return base-stack
   }
 
-  let ruby-chars = if ruby-is-str { token.ruby.clusters() } else { (token.ruby,) }
+  let ruby-chars = if ruby-is-str { token.ruby.clusters() } else {
+    (token.ruby,)
+  }
   let ruby-len = ruby-chars.len()
   let ruby-height = ruby-len * config.sizing.ruby-size
 

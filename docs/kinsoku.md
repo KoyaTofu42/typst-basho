@@ -54,6 +54,7 @@ config: (kinsoku: default-resolver(
 | `forbidden-end` | `（〔［｛〈《「『【([{〝\u{201c}\u{2018}` | Characters that must not end a column |
 | `hanging` | `、。，．` | Characters that can hang into the gutter |
 | `unbreakable-chars` | `—―…‥` | Consecutive pairs of these chars are unsplittable |
+| `buntetsu-kinsoku` | `true` | Enable/disable unsplittable pair enforcement |
 | `compressible-punctuation` | `、。，．` | Characters eligible for Oikomi compression |
 | `mode` | `"burasagari"` | `"burasagari"` (hang) or `"oikomi"` (compress) |
 | `compression-per-punct` | `0.5` | Max compression per punct (× char-box size) |
@@ -72,10 +73,9 @@ The resolve signature is:
 )
 ```
 
-Standalone helpers are exported from `src/core/kinsoku.typ` for building custom resolvers:
+Standalone helpers are exported from `"@preview/basho:0.1.0": kinsoku` for building custom resolvers:
 
 ```typst
-#import "src/core/kinsoku.typ":
   is-forbidden-start, is-forbidden-end, is-hanging,
   is-unbreakable-pair, is-compressible-punctuation,
   calculate-shrinkable-space, apply-spacing-compression,

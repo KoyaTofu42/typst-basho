@@ -133,6 +133,9 @@ Insert or modify tokens between flattening and classification:
   },
 )
 
+#import "@preview/basho:0.1.0": tate
+#import "@preview/basho:0.1.0/src/config.typ": default-rendering-params, default-spacing, default-turn, default-vblock, default-hblock
+
 #tate(config: (
   rendering: (
     default-rendering-params(),
@@ -152,6 +155,9 @@ Insert or modify tokens between flattening and classification:
 Add a new token type with its own renderer:
 
 ```typst
+#import "@preview/basho:0.1.0": tate
+#import "@preview/basho:0.1.0/src/config.typ": default-rendering-params, default-spacing, default-turn, default-vblock, default-hblock
+
 #tate(config: (
   rendering: (
     default-rendering-params(),
@@ -190,7 +196,8 @@ This catches missing keys, wrong types, and missing function shapes early. All v
 If you only want to override one aspect, import and compose with the default factories:
 
 ```typst
-#import "@preview/basho:0.1.0": tate, default-rendering-params, default-spacing
+#import "@preview/basho:0.1.0": tate
+#import "@preview/basho:0.1.0/src/config.typ": default-rendering-params, default-spacing
 
 #tate(config: (
   rendering: (

@@ -1,4 +1,4 @@
-#import "../lib.typ": hblock, ruby, tate, tcy
+#import "@preview/basho:0.1.0": hblock, ruby, tate, tcy
 
 #set text(font: "Harano Aji Mincho", size: 11pt)
 #set page(paper: "jp-business-card", fill: oklch(98.17%, 0.048, 107.25deg))

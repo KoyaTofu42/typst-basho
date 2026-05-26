@@ -175,7 +175,10 @@
   let last = if col.len() > 0 { col.last() } else { none }
 
   // Priority 0: Unbreakable pairs (Buntetsu Kinsoku)
-  if k.at("buntetsu-kinsoku", default: true) and is-unbreakable-pair(last, token, k.unbreakable-chars) {
+  if (
+    k.at("buntetsu-kinsoku", default: true)
+      and is-unbreakable-pair(last, token, k.unbreakable-chars)
+  ) {
     return (action: "push-previous")
   }
 

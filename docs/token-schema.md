@@ -12,7 +12,9 @@ Every token in Basho is a dictionary with at least a `type` field. Additional fi
 | `italic` | `bool` | Applied by `_emph_` / `#emph[]` |
 | `heading` | `int` or `none` | Heading level (1-3) when inside a heading |
 | `dest` | `str` or `none` | Link destination when inside a `#link()` |
-| `compression` | `length` | Kinsoku compression amount applied during oikomi |
+| `base-width` | `float` | Natural width proportion of the character (1.0 = full-width, 0.5 = half-width) |
+| `internal-aki` | `float` | Built-in compressible space inside yakumono (0.5 for brackets/punctuation, 0.0 otherwise) |
+| `compression-applied` | `length` | Amount of internal-aki already compressed during oikomi |
 | `space-after` | `length` | Padding added below the token for spacing rules or justification |
 | `justification-point` | `bool` | Whether the token is eligible for expansion during line justification |
 
@@ -62,7 +64,7 @@ Arbitrary content rotated 90° clockwise. Used for inline equations via `$...$`,
 
 ### `newline`
 
-A line break between columns or items.
+A line break (manual) that forces a new column.
 
 ```typst
 (type: "newline", text: "\n")
@@ -71,6 +73,19 @@ A line break between columns or items.
 | Field | Required | Description |
 |---|---|---|
 | `type` | yes | `"newline"` |
+| `text` | yes | `"\n"` |
+
+### `parbreak`
+
+A paragraph break that starts a new column with optional first-line indent and inter-paragraph spacing. Created from Typst `parbreak` elements.
+
+```typst
+(type: "parbreak", text: "\n")
+```
+
+| Field | Required | Description |
+|---|---|---|
+| `type` | yes | `"parbreak"` |
 | `text` | yes | `"\n"` |
 
 ### `ruby`
@@ -165,7 +180,12 @@ No extra fields beyond `type`.
 
 ## Helper functions
 
-The `src/core/token.typ` module provides helpers for consistent token construction:
+The `basho.token-schema` module provides helpers for consistent token construction:
+
+```typst
+#import "@preview/basho:0.1.0": token-schema
+    token, merge-token, is-token-type
+```
 
 ### `token(type, fields:)`
 

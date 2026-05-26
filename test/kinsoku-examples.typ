@@ -5,7 +5,9 @@
 // Compile: typst compile --root . test/kinsoku-examples.typ /tmp/kinsoku-examples.pdf
 
 #import "../lib.typ": ruby, tate
-#import "../src/core/kinsoku.typ": calculate-shrinkable-space, default-resolver, is-forbidden-start, is-hanging
+#import "../src/core/kinsoku.typ": (
+  calculate-shrinkable-space, default-resolver, is-forbidden-start, is-hanging,
+)
 
 #set page(width: 10cm, height: 10cm)
 #set text(font: "Harano Aji Mincho")

@@ -88,6 +88,7 @@ The kinsoku resolver controls Japanese line-breaking behavior.
   forbidden-end: str,              // characters that must not end a column
   hanging: str,                    // characters eligible for burasagari
   unbreakable-chars: str,          // characters that form unsplittable pairs
+  buntetsu-kinsoku: bool,          // enable/disable unsplittable pair enforcement
   compressible-punctuation: str,   // characters eligible for oikomi compression
   mode: "burasagari" | "oikomi",   // line-breaking strategy
   compression-per-punct: float,    // max compression per punct (× char-box)

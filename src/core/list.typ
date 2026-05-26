@@ -28,7 +28,11 @@
         box(
           width: config.sizing.char-box,
           height: config.sizing.char-box,
-          align(center + horizon, text(..f-opt, features: config.features, marker)),
+          align(center + horizon, text(
+            ..f-opt,
+            features: config.features,
+            marker,
+          )),
         )
       },
     ),

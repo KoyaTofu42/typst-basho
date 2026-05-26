@@ -22,8 +22,12 @@
   } else if type(c) == content {
     let fname = repr(c.func())
     // Be tolerant to list element shapes to avoid falling back to hblock.
-    let is-bullet-list = fname == "list" or (c.has("children") and c.has("marker"))
-    let is-numbered-list = fname == "enum" or (c.has("children") and c.has("numbering"))
+    let is-bullet-list = (
+      fname == "list" or (c.has("children") and c.has("marker"))
+    )
+    let is-numbered-list = (
+      fname == "enum" or (c.has("children") and c.has("numbering"))
+    )
 
     if fname == "metadata" {
       if type(c.value) == dictionary and "type" in c.value {
@@ -39,7 +43,9 @@
       }
     } else if fname == "space" {
       tokens.push(token("char", fields: (text: " ")))
-    } else if fname == "parbreak" or fname == "linebreak" {
+    } else if fname == "parbreak" {
+      tokens.push(token("parbreak", fields: (text: "\n")))
+    } else if fname == "linebreak" {
       tokens.push(token("newline", fields: (text: "\n")))
     } else if fname == "heading" {
       tokens.push(token("newline", fields: (text: "\n")))
@@ -54,7 +60,10 @@
       let inner = flatten(c.body, config)
       inner = inner.map(t => merge-token(t, (dest: dest)))
       tokens += inner
-    } else if fname in ("strong", "emph", "underline", "strike", "overline", "highlight") {
+    } else if (
+      fname
+        in ("strong", "emph", "underline", "strike", "overline", "highlight")
+    ) {
       // Inline formatting elements
       let inner = flatten(c.body, config)
       if fname == "strong" {
@@ -70,7 +79,11 @@
           let only = c.children.at(0)
           if type(only) == content and repr(only.func()) == "item" {
             let inner = only.body
-            if type(inner) == content and repr(inner.func()) == "sequence" and inner.has("children") {
+            if (
+              type(inner) == content
+                and repr(inner.func()) == "sequence"
+                and inner.has("children")
+            ) {
               for child in inner.children {
                 if type(child) == content and repr(child.func()) == "item" {
                   items.push(child)
@@ -110,9 +123,15 @@
           seen-item = true
         } else if type(child) == content and repr(child.func()) == "space" {
           // Ignore whitespace nodes inserted by list syntax.
-        } else if type(child) == content and child.has("children") and child.children.len() == 0 {
+        } else if (
+          type(child) == content
+            and child.has("children")
+            and child.children.len() == 0
+        ) {
           // Ignore empty sequence children from list syntax.
-        } else if type(child) == content and child.has("text") and child.text == "" {
+        } else if (
+          type(child) == content and child.has("text") and child.text == ""
+        ) {
           // Ignore empty text nodes.
         } else {
           tokens += flatten(child, config)

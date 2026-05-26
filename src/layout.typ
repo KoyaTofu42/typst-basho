@@ -23,7 +23,10 @@
   )
 }
 
-#import "core/kinsoku.typ": apply-spacing-compression, is-forbidden-start, is-valid-line-end, justify-line
+#import "core/kinsoku.typ": (
+  apply-spacing-compression, is-forbidden-start, is-valid-line-end,
+  justify-line,
+)
 
 /// Splits a flat token array into column groups based on a maximum height
 /// (absolute length). Uses pre-measured token heights for accuracy,
@@ -39,6 +42,18 @@
   let current-col = ()
   let current-height = 0pt
 
+  // Add paragraph indent for the very first line
+  let par-indent-abs = config.at("paragraph-indent-abs", default: 0pt)
+  if par-indent-abs > 0pt {
+    let indent-token = (
+      type: "spacing",
+      text: "",
+      width: config.layout.at("paragraph-indent", default: 1em),
+    )
+    current-col.push(indent-token)
+    current-height += par-indent-abs
+  }
+
   let i = 0
   while i < tokens.len() {
     let token = tokens.at(i)
@@ -48,6 +63,39 @@
       columns.push(current-col)
       current-col = ()
       current-height = 0pt
+      i += 1
+      continue
+    }
+
+    if token.type == "parbreak" {
+      columns.push(current-col)
+      current-col = ()
+      current-height = 0pt
+
+      // Add paragraph spacing between paragraphs
+      let par-spacing-abs = config.at("paragraph-spacing-abs", default: 0pt)
+      if par-spacing-abs > 0pt {
+        let spacing-token = (
+          type: "spacing",
+          text: "",
+          width: config.layout.at("paragraph-spacing", default: 0em),
+        )
+        current-col.push(spacing-token)
+        current-height += par-spacing-abs
+      }
+
+      // Add paragraph indent
+      let par-indent-abs = config.at("paragraph-indent-abs", default: 0pt)
+      if par-indent-abs > 0pt {
+        let indent-token = (
+          type: "spacing",
+          text: "",
+          width: config.layout.at("paragraph-indent", default: 1em),
+        )
+        current-col.push(indent-token)
+        current-height += par-indent-abs
+      }
+
       i += 1
       continue
     }
@@ -64,8 +112,17 @@
     }
 
     if current-height > 0pt and current-height + h > max-height {
-      config.kinsoku.insert("next-token", if i + 1 < tokens.len() { tokens.at(i + 1) } else { none })
-      let decision = (config.kinsoku.resolve)(current-col, token, h, config, current-height, max-height)
+      config.kinsoku.insert("next-token", if i + 1 < tokens.len() {
+        tokens.at(i + 1)
+      } else { none })
+      let decision = (config.kinsoku.resolve)(
+        current-col,
+        token,
+        h,
+        config,
+        current-height,
+        max-height,
+      )
 
       if decision.action == "burasagari" {
         let hanging-token = merge-token(token, (type: "hanging"))
@@ -78,7 +135,11 @@
       }
 
       if decision.action == "oikomi" {
-        current-col = apply-spacing-compression(current-col, decision.compression-amount, config)
+        current-col = apply-spacing-compression(
+          current-col,
+          decision.compression-amount,
+          config,
+        )
         current-col.push(token)
         columns.push(current-col)
         current-col = ()
@@ -97,13 +158,24 @@
           popped.insert(0, p)
           popped-height += ph
 
-          let new-last = if current-col.len() > 0 { current-col.last() } else { none }
+          let new-last = if current-col.len() > 0 { current-col.last() } else {
+            none
+          }
           if is-valid-line-end(new-last, config.kinsoku.forbidden-end) {
             // If the overflow token is forbidden-start and the new column
             // would start with one too, cascade further to prevent a
             // column-start kinsoku violation.
-            let tok-start = is-forbidden-start(token, config.kinsoku.forbidden-start)
-            let pop-start = popped.len() > 0 and is-forbidden-start(popped.first(), config.kinsoku.forbidden-start)
+            let tok-start = is-forbidden-start(
+              token,
+              config.kinsoku.forbidden-start,
+            )
+            let pop-start = (
+              popped.len() > 0
+                and is-forbidden-start(
+                  popped.first(),
+                  config.kinsoku.forbidden-start,
+                )
+            )
             let needs-more = tok-start and pop-start
             if not needs-more {
               break
@@ -112,7 +184,11 @@
         }
 
         let exhausted = current-col.len() == 0
-        current-col = justify-line(current-col, max-height - (current-height - popped-height), config)
+        current-col = justify-line(
+          current-col,
+          max-height - (current-height - popped-height),
+          config,
+        )
         columns.push(current-col)
         if exhausted {
           // All tokens were popped but the violation persists.
@@ -128,7 +204,11 @@
       }
 
       // oidashi — break normally before the current token
-      current-col = justify-line(current-col, max-height - current-height, config)
+      current-col = justify-line(
+        current-col,
+        max-height - current-height,
+        config,
+      )
       columns.push(current-col)
       current-col = (token,)
       current-height = h
@@ -184,7 +264,11 @@
     // Measure and render within the current flow so height is respected.
     #layout(size => context {
       let heights = tokens.map(token => {
-        if token.type == "newline" or token.type == "heading-anchor" {
+        if (
+          token.type == "newline"
+            or token.type == "parbreak"
+            or token.type == "heading-anchor"
+        ) {
           0pt
         } else {
           measure(render-char-token(token, config)).height
@@ -192,15 +276,26 @@
       })
 
       let col-gap-abs = measure(v(config.layout.column-gap)).height
-      let top-margin = if type(page.margin) == dictionary { page.margin.top } else { page.margin }
+      let top-margin = if type(page.margin) == dictionary {
+        page.margin.top
+      } else { page.margin }
       let top-margin-abs = measure(box(height: top-margin)).height
-      let bottom-margin = if type(page.margin) == dictionary { page.margin.bottom } else { page.margin }
+      let bottom-margin = if type(page.margin) == dictionary {
+        page.margin.bottom
+      } else { page.margin }
       let bottom-margin-abs = measure(box(height: bottom-margin)).height
       let page-height-abs = measure(box(height: page.height)).height
-      let page-body-height = page-height-abs - top-margin-abs - bottom-margin-abs
+      let page-body-height = (
+        page-height-abs - top-margin-abs - bottom-margin-abs
+      )
       let y-in-body = here().position().y - top-margin-abs
-      let in-page-context = size.height >= page-body-height - 5pt and size.height <= page-body-height + 5pt
-      let available-height = if in-page-context and y-in-body >= 0pt and y-in-body <= size.height {
+      let in-page-context = (
+        size.height >= page-body-height - 5pt
+          and size.height <= page-body-height + 5pt
+      )
+      let available-height = if (
+        in-page-context and y-in-body >= 0pt and y-in-body <= size.height
+      ) {
         size.height - y-in-body
       } else {
         // Clamp to container height when the margin assumption is invalid
@@ -211,15 +306,31 @@
 
       let cfg = config
       // Resolve char-box to absolute for kinsoku compression calculations
-      let char-box-abs = measure(box(width: config.sizing.char-box, height: config.sizing.char-box)).height
+      let char-box-abs = measure(box(
+        width: config.sizing.char-box,
+        height: config.sizing.char-box,
+      )).height
       cfg.insert("char-box-abs", char-box-abs)
+
+      // Resolve paragraph-indent and paragraph-spacing to absolute lengths
+      let par-indent = cfg.layout.at("paragraph-indent", default: 1em)
+      let par-indent-abs = measure(box(height: par-indent)).height
+      cfg.insert("paragraph-indent-abs", par-indent-abs)
+
+      let par-spacing = cfg.layout.at("paragraph-spacing", default: 0em)
+      let par-spacing-abs = measure(box(height: par-spacing)).height
+      cfg.insert("paragraph-spacing-abs", par-spacing-abs)
 
       let num-segments = cfg.layout.columns
 
       // First page columns divide remaining height after any preceding content
       // (e.g. headings). Subsequent pages divide the full page body height.
-      let first-usable = (available-height - (num-segments - 1) * col-gap-abs) / num-segments
-      let full-usable = (size.height - (num-segments - 1) * col-gap-abs) / num-segments
+      let first-usable = (
+        (available-height - (num-segments - 1) * col-gap-abs) / num-segments
+      )
+      let full-usable = (
+        (size.height - (num-segments - 1) * col-gap-abs) / num-segments
+      )
 
       let result = []
 
@@ -260,7 +371,11 @@
           let page = render-page-from-cols(cols, col-widths, i, full-usable)
           i = page.new-idx
           if page.rows.len() > 0 {
-            result += stack(dir: ttb, spacing: cfg.layout.column-gap, ..page.rows)
+            result += stack(
+              dir: ttb,
+              spacing: cfg.layout.column-gap,
+              ..page.rows,
+            )
           }
         }
       } else {
@@ -288,13 +403,22 @@
         }
 
         // Count tokens consumed on the first page.
-        // paginate() skips newline tokens (they are not put into columns),
+        // paginate() skips newline/parbreak tokens (they are not put into columns),
         // so we must advance past them to keep the slice aligned.
+        // Also, parbreak handling injects synthetic spacing tokens into columns
+        // that do not correspond to any source token — exclude those from the count.
         let consumed = 0
         for col-idx in range(first-count) {
-          let remaining = cols.at(col-idx).len()
+          let col-tokens = cols.at(col-idx)
+          let remaining = col-tokens
+            .filter(t => t.at("text", default: "") != "" or t.type != "spacing")
+            .len()
           while remaining > 0 {
-            if tokens.at(consumed).type == "newline" {
+            if consumed >= tokens.len() { break }
+            if (
+              tokens.at(consumed).type == "newline"
+                or tokens.at(consumed).type == "parbreak"
+            ) {
               consumed += 1
             } else {
               consumed += 1
@@ -304,25 +428,50 @@
         }
 
         // Render first page
-        let first-page = render-page-from-cols(cols, col-widths, 0, first-usable)
+        let first-page = render-page-from-cols(
+          cols,
+          col-widths,
+          0,
+          first-usable,
+        )
         if first-page.rows.len() > 0 {
-          result += stack(dir: ttb, spacing: cfg.layout.column-gap, ..first-page.rows)
+          result += stack(
+            dir: ttb,
+            spacing: cfg.layout.column-gap,
+            ..first-page.rows,
+          )
         }
 
         // Phase 2 — paginate remaining tokens with full page height
         if consumed < tokens.len() {
           result += colbreak()
           cfg.insert("usable-height", full-usable)
-          let rest-cols = paginate(tokens.slice(consumed), heights.slice(consumed), full-usable, cfg)
-          let rest-col-widths = rest-cols.map(col => measure(render-column(col, cfg)).width)
+          let rest-cols = paginate(
+            tokens.slice(consumed),
+            heights.slice(consumed),
+            full-usable,
+            cfg,
+          )
+          let rest-col-widths = rest-cols.map(col => {
+            measure(render-column(col, cfg)).width
+          })
 
           let ri = 0
           while ri < rest-cols.len() {
             if ri > 0 { result += colbreak() }
-            let page = render-page-from-cols(rest-cols, rest-col-widths, ri, full-usable)
+            let page = render-page-from-cols(
+              rest-cols,
+              rest-col-widths,
+              ri,
+              full-usable,
+            )
             ri = page.new-idx
             if page.rows.len() > 0 {
-              result += stack(dir: ttb, spacing: cfg.layout.column-gap, ..page.rows)
+              result += stack(
+                dir: ttb,
+                spacing: cfg.layout.column-gap,
+                ..page.rows,
+              )
             }
           }
         }

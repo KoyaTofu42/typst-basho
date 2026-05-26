@@ -177,7 +177,9 @@
   (type: "ruby", text: "漢", ruby: "かん"),
   (type: "ruby", text: "字", ruby: "じ"),
 )
-#layout-tate(test-tokens-1, merge-config(default-opts, (font: "Harano Aji Mincho")))
+#layout-tate(test-tokens-1, merge-config(default-opts, (
+  font: "Harano Aji Mincho",
+)))
 
 #pagebreak()
 == Test 2: Combined features (TCY + Kinsoku + Group Ruby)
@@ -191,7 +193,9 @@
   (type: "ruby", text: "記憶", ruby: "キオク"),
   (type: "char", text: "。"),
 )
-#layout-tate(test-tokens-2, merge-config(default-opts, (font: "Harano Aji Mincho")))
+#layout-tate(test-tokens-2, merge-config(default-opts, (
+  font: "Harano Aji Mincho",
+)))
 
 #pagebreak()
 == Test 3: Empty ruby handling
@@ -207,7 +211,9 @@
   (type: "char", text: "晴"),
   (type: "char", text: "天"),
 )
-#layout-tate(test-tokens-3, merge-config(default-opts, (font: "Harano Aji Mincho")))
+#layout-tate(test-tokens-3, merge-config(default-opts, (
+  font: "Harano Aji Mincho",
+)))
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Phase 7: Content Flattener & API Finalization
@@ -529,7 +535,9 @@
 
 = Issue: Nya
 
-#tate(config: (sizing: (char-box: 12pt)))[あいうえおかきくけこさしすせそたちニャーニャー]
+#tate(config: (
+  sizing: (char-box: 12pt),
+))[あいうえおかきくけこさしすせそたちニャーニャー]
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // Huge Example: comprehensive rendering test
@@ -548,7 +556,6 @@
 
 #tate(config: (layout: (columns: 2)))[
   = The Basho Package Example
-  = 見出しテスト
 
   この文書は、Bashoパッケージの大規模なレンダリングテスト用のサンプルです。Typstの一般的なマークアップと、Bashoの公開APIを組み合わせて、縦組みでの表示を幅広く確認します。
 
@@ -565,6 +572,7 @@
   句読点と禁則の確認のために、（かっこ、）や「かぎかっこ」、そして……や、――のような連続記号も入れる。ああ、ここで改行が必要になるくらい長く続けて、ぶら下がりと追い込みの差が出るようにしておく。
 
   = 第二節
+
   ここではTypstの通常の段落、改行、スペース、そして複数の文を続けて、縦組みの行送りをたくさん発生させる。日本語の長文は、縦書きでは右から左へ列が進み、禁則処理が効くはずだ。
 
   2026年の春には、42と#turn[24]と#tcy("999")と999が同じ文章に並ぶ。
@@ -577,10 +585,20 @@
     #grid(
       columns: 2,
       row-gutter: 1em,
-      rect(width: 90pt, height: 24pt, fill: rgb("d8e8ff"), stroke: 0.5pt + rgb("4f6f9f"))[四角形],
-      circle(radius: 12pt, fill: rgb("ffd9c7"), stroke: 0.5pt + rgb("b86d43"))[丸],
+      rect(
+        width: 90pt,
+        height: 24pt,
+        fill: rgb("d8e8ff"),
+        stroke: 0.5pt + rgb("4f6f9f"),
+      )[四角形],
+      circle(
+        radius: 12pt,
+        fill: rgb("ffd9c7"),
+        stroke: 0.5pt + rgb("b86d43"),
+      )[丸],
 
-      rect(tate-inline[そうでもありませんよ]), rect(tate-inline[わあ、ここは広いですね]),
+      rect(tate-inline[そうでもありませんよ]),
+      rect(tate-inline[わあ、ここは広いですね]),
     )
   ]
 
@@ -600,6 +618,7 @@
   #ruby("縦書き", "たてがき")と#ruby("禁則処理", "きんそくしょり")をもう一度確認する。#strong[太字]と#emph[斜体]も同時に並べる。
 
   === 複合サンプル
+
   ここには、見出し、本文、英数字、記号、そして複数の Typst関数が一気に入る。
 
   - 箇条書き一
@@ -665,7 +684,10 @@ The next two blocks use the same content with different line-breaking presets so
 #rect(
   height: 13em,
   inset: 0.7em,
-  [#tate[ジャッジマンから#ruby("科", "か")される#ruby("最", "もっと")も#ruby("重", "おも")い#ruby("罰", "ばつ")「#ruby("没収", "コンフィスケイション")」を付加された「#ruby("死刑", "デス・ペナルティ")」]],
+  [#tate[#ruby("山吹色の波紋疾走", "サンライトイエローオーバードライブ")
+
+    「#ruby("世界", "ザ・ワールド")！」
+  ]],
 )
 
 
@@ -705,7 +727,12 @@ As a overall test, the next page has a series of edge cases for kinsoku processi
 // With the fix (page.margin.top), the actual 50pt top margin is used correctly.
 // ═══════════════════════════════════════════════════════════════════════════════
 #pagebreak()
-#set page(width: 300pt, height: 200pt, margin: (top: 50pt, bottom: 20pt, left: 10pt, right: 30pt))
+#set page(width: 300pt, height: 200pt, margin: (
+  top: 50pt,
+  bottom: 20pt,
+  left: 10pt,
+  right: 30pt,
+))
 #set text(font: "Harano Aji Mincho", size: 12pt)
 
 == Phase N: Asymmetric margins

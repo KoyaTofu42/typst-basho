@@ -36,6 +36,8 @@ Arrays (like `kinsoku`, `tcy`, `rendering`) are replaced wholesale — intention
     columns: 1,
     gap: 1em,
     column-gap: 2em,
+    paragraph-indent: 1em,
+    paragraph-spacing: 0em,
     hooks: (),
   ),
 
@@ -69,13 +71,15 @@ Arrays (like `kinsoku`, `tcy`, `rendering`) are replaced wholesale — intention
 | `ruby-offset` | `1em` | Horizontal offset of ruby text from the left edge |
 | `heading-scales` | `(1.5, 1.3, 1.15)` | Font scale factors for h1, h2, h3 |
 
-### `default-layout-params(columns, gap, column-gap, hooks)`
+### `default-layout-params(columns, gap, column-gap, paragraph-indent, paragraph-spacing, hooks)`
 
 | Parameter | Default | Description |
 |---|---|---|
 | `columns` | `1` | Number of horizontal rows (段組み) |
 | `gap` | `1em` | Gap between columns within a row |
 | `column-gap` | `2em` | Gap between rows (vertical) |
+| `paragraph-indent` | `1em` | First-line indent for each paragraph (字下げ) |
+| `paragraph-spacing` | `0em` | Extra spacing inserted between paragraphs |
 | `hooks` | `()` | Array of custom page layout functions |
 
 ### `default-categories(classify)`

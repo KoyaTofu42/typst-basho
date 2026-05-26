@@ -9,7 +9,6 @@
 #import "core/validate.typ": validate-config
 #import "renderer/renderer.typ": render-char-token
 
-
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).
 ///
 /// - body (content): The text or content to render horizontally.
@@ -81,7 +80,11 @@
   tokens = apply-classifiers(tokens, cfg)
 
   let rendered = tokens
-    .filter(token => token.type != "newline" and token.type != "heading-anchor")
+    .filter(token => (
+      token.type != "newline"
+        and token.type != "parbreak"
+        and token.type != "heading-anchor"
+    ))
     .map(token => render-char-token(token, cfg))
 
   stack(
