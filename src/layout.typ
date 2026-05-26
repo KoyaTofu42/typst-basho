@@ -44,7 +44,20 @@
 
   // Add paragraph indent for the very first line
   let par-indent-abs = config.at("paragraph-indent-abs", default: 0pt)
-  if par-indent-abs > 0pt {
+  
+  let is-first-line-list = false
+  for j in range(0, tokens.len()) {
+    let peek = tokens.at(j)
+    if peek.type == "bullet-list-marker" or peek.at("list-marker", default: false) {
+      is-first-line-list = true
+      break
+    }
+    if peek.type != "newline" and peek.type != "parbreak" and peek.type != "heading-anchor" {
+      break
+    }
+  }
+
+  if par-indent-abs > 0pt and not is-first-line-list {
     let indent-token = (
       type: "spacing",
       text: "",
@@ -86,7 +99,20 @@
 
       // Add paragraph indent
       let par-indent-abs = config.at("paragraph-indent-abs", default: 0pt)
-      if par-indent-abs > 0pt {
+      
+      let is-list = false
+      for j in range(i + 1, tokens.len()) {
+        let peek = tokens.at(j)
+        if peek.type == "bullet-list-marker" or peek.at("list-marker", default: false) {
+          is-list = true
+          break
+        }
+        if peek.type != "newline" and peek.type != "parbreak" and peek.type != "heading-anchor" {
+          break
+        }
+      }
+
+      if par-indent-abs > 0pt and not is-list {
         let indent-token = (
           type: "spacing",
           text: "",
