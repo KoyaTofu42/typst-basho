@@ -1,6 +1,6 @@
 # Basho — Vertical Japanese Typesetting for Typst
 
-![Thumbnail of Basho](https://github.com/KoyaTofu42/typst-basho/blob/ea58d6efb40c6d66a95a5cc53f0e7265de7e84b2/example/thumbnail.png)
+![Thumbnail of Basho](example/banner.svg)
 
 Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package for Typst. It handles character boxes, tate-chu-yoko (TCY), ruby (furigana), automatic pagination, multi-column RTL layout, and kinsoku shori (Japanese line-breaking rules).
 
@@ -43,6 +43,19 @@ An extended example with various features is available [here](example/japanese-v
 ### Inline rendering
 
 `#tate-inline(body, config)` renders content as a vertical stack without pagination — useful inside `#hblock[...]` or other upright contexts.
+
+## Customization
+
+Basho accepts a `config` dictionary on `#tate()` to tweak layout and rendering:
+
+```typst
+#tate(config: (
+  layout: (columns: 2, paragraph-indent: 1.5em),
+  sizing: (char-box: 1.2em),
+))[...]
+```
+
+See [docs/configuration.md](docs/configuration.md) for the full options reference and [docs/extending.md](docs/extending.md) for custom modules.
 
 ### Feature peek
 

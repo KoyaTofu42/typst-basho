@@ -6,7 +6,11 @@
                 <g class="typst-group">
                     <g>
                         <g class="typst-group" transform="matrix(1 0 0 1 355.6666666666667 0)">
-                            <g/>
+                            <g>
+                                <g class="typst-group">
+                                    <g/>
+                                </g>
+                            </g>
                         </g>
                         <g class="typst-group" transform="matrix(1 0 0 1 328.1666666666667 0)">
                             <g>
@@ -89,7 +93,11 @@
                             </g>
                         </g>
                         <g class="typst-group" transform="matrix(1 0 0 1 306.1666666666667 0)">
-                            <g/>
+                            <g>
+                                <g class="typst-group">
+                                    <g/>
+                                </g>
+                            </g>
                         </g>
                         <g class="typst-group" transform="matrix(1 0 0 1 284.1666666666667 0)">
                             <g>
