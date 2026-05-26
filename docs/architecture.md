@@ -7,12 +7,12 @@ flowchart LR
     Input["Input content"] --> Flatten["1. Flatten<br/>flatten.typ → parser.typ"]
     Flatten --> Transform["2. Transform<br/>transform.typ"]
     Transform --> Classify["3. Classify<br/>classify.typ"]
-    Classify --> Paginate["4. Paginate<br/>layout.typ"]
+    Classify --> Paginate["4. Paginate<br/>layout/paginate.typ"]
     Paginate --> Render["5. Render<br/>renderer.typ"]
     Render --> Output["Output"]
 ```
 
-## Stage 1 — Flatten (`src/pipeline/flatten.typ` + `src/core/parser.typ`)
+## Stage 1 — Flatten (`src/pipeline/flatten.typ` + `src/pipeline/parser.typ`)
 
 Walks the Typst content tree recursively. Native elements (`text`, `strong`, `emph`, `heading`, `list`, `enum`, `equation`, metadata macros) are converted into flat token dictionaries:
 
@@ -56,7 +56,7 @@ Applies every TCY module's `filter(tokens, config) => tokens` function in config
 - **"rotated"** — converted to `turn` tokens (e.g. `ABC`)
 - **"char"** — split into individual upright `char` tokens
 
-## Stage 4 — Paginate (`src/layout.typ`)
+## Stage 4 — Paginate (`src/layout/paginate.typ`)
 
 Every token is measured inside the layout context using `measure(render-char-token(...))`, producing an array of absolute heights.
 
@@ -102,24 +102,31 @@ Columns are arranged right-to-left (RTL) in segments, with multi-page overflow v
 src/
 ├── main.typ              # Public API entry: tate(), tate-inline(), inline macros
 ├── config.typ            # merge-config, default-opts, factory functions
-├── layout.typ            # paginate, render-column, render-page, layout-tate
-├── pipeline/
-│   ├── flatten.typ       # Content tree traversal → token array
-│   ├── transform.typ     # Transform stage: apply config.rendering transforms
-│   └── classify.typ      # Classify stage: apply config.tcy filters
-├── core/
-│   ├── token.typ         # Token creation and merge helpers
-│   ├── parser.typ        # String tokenizer (inline parsing)
+├── components/           # Element renderers and component modules
 │   ├── char-box.typ      # Character box rendering
-│   ├── kinsoku.typ       # Japanese line-breaking rules + default resolver
-│   ├── validate.typ      # Config validation
-│   ├── tcy.typ           # Tate-chu-yoko detection & classification
-│   ├── spacing.typ       # CJK/European spacing insertion
-│   ├── turn.typ          # Rotated content rendering
-│   ├── vblock.typ        # Vertical block rendering
 │   ├── hblock.typ        # Horizontal block rendering
-│   └── list.typ          # Bullet & numbered list modules
-└── renderer/
-    ├── renderer.typ      # Token dispatch → individual renderers
-    └── ruby.typ          # Ruby (furigana) rendering
+│   ├── list.typ          # Bullet & numbered list modules
+│   ├── tcy.typ           # Tate-chu-yoko logic
+│   ├── turn.typ          # Rotated content rendering
+│   └── vblock.typ        # Vertical block rendering
+├── kinsoku/              # Japanese line-breaking rules
+│   ├── kinsoku-builtin.typ # Default priority-based resolver
+│   ├── kinsoku-utils.typ # Shared line-breaking utilities
+│   ├── kinsoku.typ       # Main kinsoku entry point
+│   └── spacing.typ       # CJK/European spacing insertion
+├── layout/               # Pagination and assembly
+│   ├── layout.typ        # Main vertical layout entry point
+│   ├── page.typ          # Page and column rendering
+│   └── paginate.typ      # Core pagination algorithm
+├── pipeline/             # Core AST operations
+│   ├── classify.typ      # Classify stage: apply config.tcy filters
+│   ├── flatten.typ       # Content tree traversal → token array
+│   ├── parser.typ        # String tokenizer (inline parsing)
+│   ├── token.typ         # Token creation and merge helpers
+│   └── transform.typ     # Transform stage: apply config.rendering transforms
+├── renderer/             # Token rendering
+│   ├── renderer.typ      # Token dispatch → individual renderers
+│   └── ruby.typ          # Ruby (furigana) rendering
+└── utils/                # Generic helpers
+    └── validate.typ      # Config validation
 ```

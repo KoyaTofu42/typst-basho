@@ -5,7 +5,7 @@
 // Compile: typst compile --root . test/kinsoku-examples.typ /tmp/kinsoku-examples.pdf
 
 #import "../lib.typ": ruby, tate
-#import "../src/core/kinsoku.typ": (
+#import "../src/kinsoku/kinsoku.typ": (
   calculate-shrinkable-space, default-resolver, is-forbidden-start, is-hanging,
 )
 

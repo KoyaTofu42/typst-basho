@@ -1,9 +1,9 @@
 // src/config.typ
 // Configuration state and merge engine for Basho DI architecture
 
-#import "core/kinsoku.typ": default-resolver
-#import "core/tcy.typ": default-tcy
-#import "core/spacing.typ": default-spacing
+#import "kinsoku/kinsoku.typ": default-resolver
+#import "components/tcy.typ": default-tcy
+#import "kinsoku/spacing.typ": default-spacing
 
 // ---------------------------------------------------------------------------
 // Default rendering module factory — self-contained
@@ -108,10 +108,10 @@
   )
 }
 
-#import "core/turn.typ": default-turn
-#import "core/vblock.typ": default-vblock
-#import "core/hblock.typ": default-hblock
-#import "core/list.typ": (
+#import "components/turn.typ": default-turn
+#import "components/vblock.typ": default-vblock
+#import "components/hblock.typ": default-hblock
+#import "components/list.typ": (
   default-bullet-list-params, default-numbered-list-params,
 )
 

@@ -1,8 +1,8 @@
-// src/core/spacing.typ
+// src/kinsoku/spacing.typ
 // Automatic spacing module (Shikiri / Wou-Kan Kakaku)
 
-#import "../core/token.typ": merge-token, token
-#import "../core/kinsoku.typ": (
+#import "../pipeline/token.typ": merge-token, token
+#import "../kinsoku/kinsoku.typ": (
   is-forbidden-end, is-forbidden-start, is-unbreakable-pair,
 )
 

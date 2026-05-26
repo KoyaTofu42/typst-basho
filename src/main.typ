@@ -1,12 +1,12 @@
 // src/main.typ
 // Implementation — all functions re-exported through lib.typ
 
-#import "layout.typ": layout-tate
+#import "layout/layout.typ": layout-tate
 #import "pipeline/flatten.typ": flatten
 #import "pipeline/transform.typ": apply-transforms
 #import "pipeline/classify.typ": apply-classifiers
 #import "config.typ": default-opts, merge-config
-#import "core/validate.typ": validate-config
+#import "utils/validate.typ": validate-config
 #import "renderer/renderer.typ": render-char-token
 
 /// Forces a sequence of characters to be rendered as Tate-chu-yoko (inline horizontal).

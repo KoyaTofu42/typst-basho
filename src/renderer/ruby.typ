@@ -1,7 +1,7 @@
 // src/ruby.typ
 // Ruby (furigana) rendering
 
-#import "../core/char-box.typ": char-box
+#import "../components/char-box.typ": char-box
 
 /// Renders a character with ruby (furigana) on the right side.
 /// The overall box is strictly 1em × 1em, with the ruby text overflowing

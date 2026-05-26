@@ -1,7 +1,7 @@
 // src/list.typ
 // Self-contained list modules: each bundles data and flatten logic.
 
-#import "../core/token.typ": token
+#import "../pipeline/token.typ": token
 
 /// Default bullet list module factory.
 ///
@@ -59,7 +59,11 @@
       for i in range(c.children.len()) {
         if i > 0 { tokens.push(token("newline", fields: (text: "\n"))) }
         let num = (config.list.numbered.format)(start + i)
-        tokens.push(token("tcy", fields: (text: num, forced: true, list-marker: true)))
+        tokens.push(token("tcy", fields: (
+          text: num,
+          forced: true,
+          list-marker: true,
+        )))
         let gap = config.list.numbered.gap
         if gap != 0pt { tokens.push(token("spacing", fields: (width: gap))) }
         tokens += _flatten(c.children.at(i).body, config)

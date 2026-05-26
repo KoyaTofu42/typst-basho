@@ -1,9 +1,9 @@
 // src/renderer.typ
 // Character box rendering with OpenType vertical glyph features
 
-#import "../core/kinsoku.typ": is-forbidden-end, is-forbidden-start
+#import "../kinsoku/kinsoku.typ": is-forbidden-end, is-forbidden-start
 
-#import "../core/char-box.typ": char-box
+#import "../components/char-box.typ": char-box
 
 /// Renders a TCY (tate-chu-yoko / 縦中横) run: short horizontal text displayed
 /// with normal horizontal glyphs, centered within a 1em × 1em slot in the

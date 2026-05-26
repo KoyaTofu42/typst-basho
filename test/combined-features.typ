@@ -160,7 +160,7 @@
 
 = Phase 6 Test: Ruby (Furigana)
 
-#import "../src/layout.typ": layout-tate
+#import "../src/layout/layout.typ": layout-tate
 #import "../src/config.typ": default-opts, merge-config
 
 == Test 1: Standard ruby and long ruby
@@ -339,7 +339,7 @@
 = Phase 10 Test: Custom Kinsoku Resolvers
 
 #import "../src/config.typ": default-opts, merge-config
-#import "../src/core/kinsoku.typ": default-resolver, is-forbidden-start
+#import "../src/kinsoku/kinsoku.typ": default-resolver, is-forbidden-start
 #let extreme-oidashi-resolve(col, token, h, config, cur-h, max-h) = {
   if is-forbidden-start(token, config.kinsoku.forbidden-start) {
     return (action: "push-previous")
@@ -550,7 +550,7 @@
 #show "…": set text(font: "Harano Aji Mincho")
 
 #import "../lib.typ": hblock, ruby, tate-inline, tcy, turn, vblock
-#import "../src/core/kinsoku.typ": default-resolver
+#import "../src/kinsoku/kinsoku.typ": default-resolver
 
 = Huge Example
 

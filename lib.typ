@@ -2,12 +2,16 @@
 // Public API for Basho — Vertical Japanese Typesetting
 
 #import "src/main.typ": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
-#import "src/core/kinsoku.typ": default-resolver
-
+#import "src/kinsoku/kinsoku.typ": default-resolver
+#import "src/config.typ": default-opts, default-rendering-params
+#import "src/kinsoku/spacing.typ": default-spacing
+#import "src/components/turn.typ": default-turn
+#import "src/components/vblock.typ": default-vblock
+#import "src/components/hblock.typ": default-hblock
 
 /// Standalone helpers are exported for building custom resolvers
 #let kinsoku = {
-  import "src/core/kinsoku.typ": *
+  import "src/kinsoku/kinsoku.typ": *
   (
     "if-forbidden-start": is-forbidden-start,
     "is-forbidden-end": is-forbidden-end,
@@ -26,6 +30,6 @@
 
 /// Token utilities are exported for building custom transforms and classifiers
 #let token-schema = {
-  import "src/core/token.typ": *
+  import "src/pipeline/token.typ": *
   ("token": token, "merge-token": merge-token, "is-token-type": is-token-type)
 }
