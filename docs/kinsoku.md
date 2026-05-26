@@ -58,6 +58,7 @@ config: (kinsoku: default-resolver(
 | `mode` | `"burasagari"` | `"burasagari"` (hang) or `"oikomi"` (compress) |
 | `compression-per-punct` | `0.5` | Max compression per punct (× char-box size) |
 | `consecutive-compression` | `0.25` | Additional compression for consecutive punct pairs |
+| `max-stretch` | `1.0` | Max extra space added per justification point (× char-box size) |
 | `resolve-fn` | `none` | Custom resolve function override |
 
 ## Custom resolve functions
