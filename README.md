@@ -1,6 +1,6 @@
 # Basho — Vertical Japanese Typesetting for Typst
 
-![Thumbnail of Basho](example/banner.svg)
+![Banner of Basho](example/banner.svg)
 
 Basho (芭蕉) is a vertical Japanese typesetting (tategaki / 縦書き) package for Typst. It handles character boxes, tate-chu-yoko (TCY), ruby (furigana), automatic pagination, multi-column RTL layout, and kinsoku shori (Japanese line-breaking rules).
 
@@ -66,7 +66,7 @@ See [docs/configuration.md](docs/configuration.md) for the full options referenc
 <summary>Show code</summary>
 
 ```typst
-#import "@preview/basho:0.1.0": hblock, ruby, tate, vblock
+#import "@preview/basho:0.1.0": hblock, ruby, tate
 #set text(font: "Harano Aji Mincho")
 #set page(width: 450pt,height: 350pt)
 
@@ -88,7 +88,7 @@ See [docs/configuration.md](docs/configuration.md) for the full options referenc
 <summary>Show code</summary>
 
 ```typst
-#import "@preview/basho:0.1.0": hblock, ruby, tate, vblock
+#import "@preview/basho:0.1.0": hblock, ruby, tate, tate-inline
 #set text(font: "Harano Aji Mincho")
 #set page(width: 450pt,height: 350pt)
 
@@ -101,24 +101,25 @@ See [docs/configuration.md](docs/configuration.md) for the full options referenc
   は位置空間$x$から波数空間$k$への変換である。
 
   == 形容詞の活用表
-  #hblock(table(
-    columns: 2,
-    tate[ク活用], [],
-    tate[から], tate[未然形],
-    tate[かり], tate[連用形],
-    tate[◯], tate[終止形],
-    tate[かる], tate[連体形],
-    tate[かれ], tate[命令形],
-  ))
+  #hblock([
+    #table(
+      columns: 2,
+      tate-inline[ク活用], [],
+      tate-inline[から], tate-inline[未然形],
+      tate-inline[かり], tate-inline[連用形],
+      tate-inline[◯], tate-inline[終止形],
+      tate-inline[かる], tate-inline[連体形],
+      tate-inline[かれ], tate-inline[命令形],
+    )])
 
   == 短冊
   #rect(
     fill: rgb(255, 240, 240),
     tate(
-      [奥山に 紅葉踏みわけ 鳴く鹿の
+      config: (layout: (paragraph-indent: 0pt)),
+    )[奥山に 紅葉踏みわけ 鳴く鹿の
 
-        声きく時ぞ 秋は悲しき],
-    ),
+      声きく時ぞ 秋は悲しき],
   )
 ]
 ```

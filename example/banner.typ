@@ -1,4 +1,4 @@
-#import "../lib.typ": tate
+#import "@preview/basho:0.1.0": tate
 
 #let ink = rgb("#1c1c1c")
 #let vague-ink = rgb("#999999")
@@ -15,7 +15,12 @@
 #set text(font: ("Georgia", "Hiragino Mincho ProN"))
 
 #rect(stroke: none, fill: cream, height: 100%, radius: 100pt, inset: 0pt)[
-  #align(center, rect(width: 90%, height: 24pt, radius: (bottom: 10pt), fill: typst-color))
+  #align(center, rect(
+    width: 90%,
+    height: 24pt,
+    radius: (bottom: 10pt),
+    fill: typst-color,
+  ))
 
   #grid(
     columns: (1200pt, auto, 1fr),
@@ -27,7 +32,7 @@
     [
       // Haiku — rendered with basho, left side
       #set text(size: 70pt, fill: ink)
-      #box(inset: 1em)[#tate(config:(layout:(paragraph-indent: 0pt)))[
+      #box(inset: 1em)[#tate(config: (layout: (paragraph-indent: 0pt)))[
         閑さや
 
         　岩にしみ入る
