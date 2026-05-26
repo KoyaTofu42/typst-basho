@@ -92,9 +92,12 @@
       let h-align = if check-opening(token) { right } else if check-closing(token) { left } else { center }
       // Determine vertical alignment based on bracket type to fix spacing when compressed
       let v-align = if check-opening(token) { bottom } else { horizon }
-      let compression = token.at("compression", default: 0pt)
+      
       let cb = config.at("char-box-abs", default: config.sizing.char-box)
-      let box-height = cb - compression
+      let base = token.at("base-width", default: 1.0)
+      let applied = token.at("compression-applied", default: 0pt)
+      let box-height = base * cb - applied
+
       if heading-level != none {
         // Heading characters: scaled box
         let sz = config.sizing.char-box * font-scale

@@ -55,65 +55,67 @@
 // ---------------------------------------------------------------------------
 
 /// Calculates the total amount of shrinkable space in a column.
-/// Each compressible punctuation contributes compression-per-punct;
-/// consecutive pairs add an extra consecutive-compression.
-/// compression-per-punct and consecutive-compression are proportions
-/// of char-box-abs (e.g. 0.5 = half a char-box).
+/// Two-stage compression: first counts available internal-aki, then space-after.
 #let calculate-shrinkable-space(col, config) = {
-  let k = config.kinsoku
   let cb = config.char-box-abs
-  let per-punct = k.compression-per-punct * cb
-  let consec = k.consecutive-compression * cb
   let total = 0pt
-  for i in range(col.len()) {
-    let current = col.at(i)
-    let next-tok = if i + 1 < col.len() { col.at(i + 1) } else { none }
-
-    if is-compressible-punctuation(current, k.compressible-punctuation) {
-      total += per-punct
-    }
-
-    if (
-      next-tok != none
-        and is-compressible-punctuation(current, k.compressible-punctuation)
-        and is-compressible-punctuation(next-tok, k.compressible-punctuation)
-    ) {
-      total += consec
-    }
+  for token in col {
+    let internal = token.at("internal-aki", default: 0.0) * cb
+    let applied = token.at("compression-applied", default: 0pt)
+    let available-internal = calc.max(0pt, internal - applied)
+    total += available-internal + token.at("space-after", default: 0pt)
   }
   total
 }
 
-/// Distributes compression across compressible punctuation tokens in the column.
-/// Each token gets at most compression-per-punct removed from its height.
-/// Returns a new array of tokens with `compression` fields updated.
+/// Distributes compression across tokens in the column in two stages:
+/// 1. Compress internal-aki.
+/// 2. If space is still needed, compress space-after.
 #let apply-spacing-compression(col, amount, config) = {
-  let k = config.kinsoku
   let cb = config.char-box-abs
-  let max-per-punct = k.compression-per-punct * cb
   let remaining = amount
   let result = ()
+
+  // Stage 1: Compress internal-aki
+  let stage1 = ()
   for token in col {
-    if remaining > 0pt and is-compressible-punctuation(token, k.compressible-punctuation) {
-      let reduction = calc.min(max-per-punct, remaining)
-      token.insert("compression", token.at("compression", default: 0pt) + reduction)
-      remaining -= reduction
+    if remaining > 0pt {
+      let internal = token.at("internal-aki", default: 0.0) * cb
+      let applied = token.at("compression-applied", default: 0pt)
+      let available = calc.max(0pt, internal - applied)
+      if available > 0pt {
+        let reduction = calc.min(available, remaining)
+        token.insert("compression-applied", applied + reduction)
+        remaining -= reduction
+      }
+    }
+    stage1.push(token)
+  }
+
+  // Stage 2: Compress space-after
+  for token in stage1 {
+    if remaining > 0pt {
+      let space = token.at("space-after", default: 0pt)
+      if space > 0pt {
+        let reduction = calc.min(space, remaining)
+        token.insert("space-after", space - reduction)
+        remaining -= reduction
+      }
     }
     result.push(token)
   }
+
   result
 }
 
 /// Returns the compressible amount for a single token.
 #let get-compressible-amount(token, config) = {
   if token == none { return 0pt }
-  let k = config.kinsoku
   let cb = config.char-box-abs
-  if is-compressible-punctuation(token, k.compressible-punctuation) {
-    k.compression-per-punct * cb
-  } else {
-    0pt
-  }
+  let internal = token.at("internal-aki", default: 0.0) * cb
+  let applied = token.at("compression-applied", default: 0pt)
+  let available = calc.max(0pt, internal - applied)
+  available + token.at("space-after", default: 0pt)
 }
 
 /// Returns the number of justification points in the column.
@@ -173,7 +175,7 @@
   let last = if col.len() > 0 { col.last() } else { none }
 
   // Priority 0: Unbreakable pairs (Buntetsu Kinsoku)
-  if is-unbreakable-pair(last, token, k.unbreakable-chars) {
+  if k.at("buntetsu-kinsoku", default: true) and is-unbreakable-pair(last, token, k.unbreakable-chars) {
     return (action: "push-previous")
   }
 
@@ -226,6 +228,7 @@
   forbidden-end: "（〔［｛〈《「『【([{〝\u{201c}\u{2018}",
   hanging: "、。，．",
   unbreakable-chars: "—―…‥",
+  buntetsu-kinsoku: true,
   compressible-punctuation: "、。，．",
   mode: "burasagari",
   compression-per-punct: 0.5,
@@ -239,6 +242,7 @@
     forbidden-end: forbidden-end,
     hanging: hanging,
     unbreakable-chars: unbreakable-chars,
+    buntetsu-kinsoku: buntetsu-kinsoku,
     compressible-punctuation: compressible-punctuation,
     mode: mode,
     compression-per-punct: compression-per-punct,

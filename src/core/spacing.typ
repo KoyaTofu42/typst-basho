@@ -2,7 +2,7 @@
 // Automatic spacing module (Shikiri / Wou-Kan Kakaku)
 
 #import "../core/token.typ": merge-token, token
-#import "../core/kinsoku.typ": is-forbidden-end, is-forbidden-start
+#import "../core/kinsoku.typ": is-forbidden-end, is-forbidden-start, is-unbreakable-pair
 
 #let is-alphanumeric(t) = {
   if t == none or (t.type != "char" and t.type != "tcy" and t.type != "turn") { return false }
@@ -65,7 +65,26 @@
 
         let is-jp = is-justification-point(t, config.kinsoku.forbidden-start, config.kinsoku.forbidden-end)
 
-        t = merge-token(t, (space-after: space-after, justification-point: is-jp))
+        if config.kinsoku.at("buntetsu-kinsoku", default: true) and is-unbreakable-pair(t, next-t, config.kinsoku.unbreakable-chars) {
+          space-after = 0pt
+          is-jp = false
+        }
+
+        let base-width = 1.0
+        let internal-aki = 0.0
+        if is-opening-bracket(t, config.kinsoku.forbidden-end) or is-closing-bracket(t) {
+          internal-aki = 0.5
+        } else if t != none and t.type == "char" and type(t.text) == str and "、。，．".contains(t.text) {
+          internal-aki = 0.5
+        }
+
+        t = merge-token(t, (
+          space-after: space-after,
+          justification-point: is-jp,
+          base-width: base-width,
+          internal-aki: internal-aki,
+          compression-applied: 0pt,
+        ))
         result.push(t)
       }
       result
