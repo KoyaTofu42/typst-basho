@@ -88,10 +88,17 @@
 = ソース
 
 ```typst
-#import "@preview/basho:0.1.0": hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert
+#import "@preview/basho:0.1.0": (
+  hblock, ruby, tate, tate-inline, tcy, turn, vblock, vert,
+)
 
 #set text(font: "Harano Aji Mincho", size: 11pt)
-#set page(paper: "jis-b5", margin: (top: 20mm, bottom: 20mm, left: 25mm, right: 20mm))
+#set page(paper: "jis-b5", margin: (
+  top: 20mm,
+  bottom: 20mm,
+  left: 25mm,
+  right: 20mm,
+))
 #show "―": set text(font: "Harano Aji Mincho")
 #show "…": set text(font: "Harano Aji Mincho")
 
@@ -99,6 +106,7 @@
 #tate(config: (layout: (columns: 2, column-gap: 12pt)))[
   = Bashoパッケージの縦書きデモ
   = 春の雪
+
   三島由紀夫の「春の雪」は、大正初期の華族社会を舞台にした美と運命の物語である。
 
   #ruby("松枝", "まつがえ")の#ruby("清顕", "きよあき")は、奔放で孤独な青年であった。
@@ -107,6 +115,7 @@
 
   = 第二節 さまざまな組版機能
   == 縦中横と英数字
+
   縦書きの中の英数字は#tcy("2026")年のように#tcy("2")桁まで
   であれば縦中横として扱われ、#tcy("3")桁以上は#turn["ABC"]の
   ように#ruby("回転", "かいてん")して#ruby("表示", "ひょうじ")される。
@@ -114,12 +123,16 @@
   長音符号の「ー」や波ダッシュの「〜」、リーダーの
   「…」も正しく配置される。ダッシュ「――」は連続して
   使用しても分割されない。
+
   == 禁則処理
+
   禁則処理（きんそくしょり）とは、日本語#ruby("組版", "くみはん")の
   重要な#ruby("規則", "きそく")である。行頭に閉じ括弧（」）が
   来てはならないし、行末に開き括弧（「）が来ても
   ならない。句読点（、。）は行末にぶら下がる。
+
   == 横置きブロック
+
   文章中に図表や横書きの要素を入れたい場合は、
   #hblock[#box(stroke: 0.5pt + gray, inset: 4pt)[#tate-inline[
     横置きブロック — 縦書きの中に挿入できる
@@ -129,9 +142,10 @@
   のように縦中に回転させて表示できる。
 
   短い英字#vert("ISP")や#vert("JIS")のように
-  一字ずつ縦に並べるには \#vert を使う。
+  一字ずつ縦に並べるには\#vertを使う。
 
   = 第三節 会話
+
   「#ruby("聡子", "さとこ")さん」
   と清顕は#ruby("囁", "ささや")いた。
   「なぜ、あなたはあんな#ruby("結婚", "けっこん")を
@@ -146,6 +160,7 @@
   ただ、そういう風に決まっていただけです」
 
   = 第四節 まとめ
+
   以上が Basho パッケージの#ruby("縦書き", "たてがき")#ruby("組版", "くみはん")
   デモである。以下の機能を#ruby("網羅", "もうら")した。
 
